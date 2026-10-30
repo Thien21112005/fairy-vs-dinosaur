@@ -20,8 +20,10 @@ from fairy_vs_dinosaur.pathfinding.astar import AStarPathFinder
 from fairy_vs_dinosaur.pathfinding.beam import BeamPathFinder
 from fairy_vs_dinosaur.pathfinding.bfs import BFSPathFinder
 from fairy_vs_dinosaur.pathfinding.dfs import DFSPathFinder
+from fairy_vs_dinosaur.pathfinding.expectimax import ExpectimaxPathFinder
 from fairy_vs_dinosaur.pathfinding.greedy import GreedyPathFinder
 from fairy_vs_dinosaur.pathfinding.hill_climbing import HillClimbingPathFinder
+from fairy_vs_dinosaur.pathfinding.mcts import MCTSPathFinder
 from fairy_vs_dinosaur.pathfinding.ucs import UCSPathFinder
 from fairy_vs_dinosaur.settings_store import load_settings
 from fairy_vs_dinosaur.ui.hud import UI
@@ -120,6 +122,8 @@ class PacmanGame(GameInputMixin, GameRenderMixin, GameStatesMixin):
             "GREEDY": GreedyPathFinder(self),
             "HILL CLIMBING": HillClimbingPathFinder(self),
             "BEAM": BeamPathFinder(self),
+            "EXPECTIMAX": ExpectimaxPathFinder(self),
+            "MCTS": MCTSPathFinder(self),
         }
         self.path_finder = self.bfs_finder
         self.player = Player(self)

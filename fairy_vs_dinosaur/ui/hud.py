@@ -5,7 +5,7 @@ from fairy_vs_dinosaur.i18n import get_translation
 from fairy_vs_dinosaur.ui.game_over import GameOverScreen
 from fairy_vs_dinosaur.ui.widgets import draw_gradient_rect, draw_soft_rect, get_font
 
-SOLVE_OPTIONS = ["BFS", "DFS", "UCS", "ASTAR", "GREEDY", "HILL CLIMBING", "BEAM"]
+SOLVE_OPTIONS = ["BFS", "DFS", "UCS", "ASTAR", "GREEDY", "HILL CLIMBING", "BEAM", "EXPECTIMAX", "MCTS"]
 
 
 class UI:

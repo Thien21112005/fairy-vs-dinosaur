@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 METRICS = ['execution_time', 'expanded_nodes', 'path_length', 'success_rate']
 METRIC_NAMES = ['Execution Time (s)', 'Expanded Nodes', 'Path Length', 'Success Rate (%)']
-BAR_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54a0ff']
+BAR_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54a0ff', '#C8A2FF', '#FFA36C']
 
 
 def _bar_label(metric, value):
