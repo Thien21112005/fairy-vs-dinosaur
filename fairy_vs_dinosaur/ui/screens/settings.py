@@ -1,26 +1,18 @@
-import json
-import os
-
 import pygame
 
-from fairy_vs_dinosaur.config import SETTINGS_FILE
 from fairy_vs_dinosaur.i18n import get_translation
+from fairy_vs_dinosaur.settings_store import load_settings, save_settings
 
 
 class SettingsMenu:
-    def __init__(self, screen, sound_manager, background, back_callback):
+    def __init__(self, screen, sound_manager, background):
         self.screen = screen
         self.sound_manager = sound_manager
         self.background = background
-        self.back_callback = back_callback
         self.width, self.height = screen.get_size()
 
-        # Load settings từ file
-        self.settings_file = SETTINGS_FILE
-        self.load_settings()
-
-        # Apply initial settings
-        self.apply_audio_settings()
+        self.settings = load_settings()
+        self.sound_manager.apply_settings(self.settings)
 
         # Fonts - changed to 'times' for a more elegant, fantasy-like feel (if available; falls back to system default)
         self.title_font = pygame.font.SysFont('times', 48, bold=True)
@@ -92,64 +84,10 @@ class SettingsMenu:
         # Preview sound for testing volume
         self.preview_sound = self.sound_manager.button_click_sound
 
-    def load_settings(self):
-        """Load settings từ file, nếu không có thì tạo mặc định"""
-        default_settings = {
-            "music_volume": 0.8,
-            "sfx_volume": 0.8,
-            "music_enabled": True,
-            "sfx_enabled": True,
-            "control_scheme": "Arrow Keys",
-            "language": "English"
-        }
-
-        try:
-            if os.path.exists(self.settings_file):
-                with open(self.settings_file, 'r') as f:
-                    loaded = json.load(f)
-                self.settings = default_settings.copy()
-                self.settings.update(loaded)
-                self.save_settings()  # Save to add any new keys if needed
-            else:
-                self.settings = default_settings
-                self.save_settings()
-        except Exception as e:
-            print(f"Lỗi khi load settings: {e}")
-            self.settings = default_settings
-            self.save_settings()
-
-    def save_settings(self):
-        """Lưu settings vào file"""
-        try:
-            with open(self.settings_file, 'w') as f:
-                json.dump(self.settings, f, indent=4)
-        except:
-            print("Không thể lưu settings")
-
     def apply_settings(self):
-        """Áp dụng settings"""
         self.settings = self.temp_settings.copy()
-        self.save_settings()
-
-        # Áp dụng âm thanh ngay lập tức
-        self.apply_audio_settings()
-
-    def apply_audio_settings(self):
-        """Áp dụng cài đặt âm thanh cho toàn bộ game"""
-        # Áp dụng cho music
-        if self.settings["music_enabled"]:
-            pygame.mixer.music.set_volume(self.settings["music_volume"])
-        else:
-            pygame.mixer.music.set_volume(0)
-
-        # Áp dụng cho tất cả sound effects
-        sfx_volume = self.settings["sfx_volume"] if self.settings["sfx_enabled"] else 0
-
-        # Cập nhật volume cho tất cả sound effects trong sound_manager
-        for attr_name in dir(self.sound_manager):
-            attr = getattr(self.sound_manager, attr_name)
-            if isinstance(attr, pygame.mixer.Sound):
-                attr.set_volume(sfx_volume)
+        save_settings(self.settings)
+        self.sound_manager.apply_settings(self.settings)
 
     def draw_slider(self, surface, rect, value, hover=False, dragging=False):
         """Vẽ thanh slider với hiển thị giá trị"""
@@ -228,18 +166,15 @@ class SettingsMenu:
 
         return rect
 
-    def draw_icon(self, surface, icon_type, pos):
-        """Vẽ icon đơn giản bên trái slider - updated colors for better visibility"""
-        icon_color = self.highlight_color  # Use highlight color for icons
-        if icon_type == "music":
-            # Music note icon
-            pygame.draw.rect(surface, icon_color, (pos[0], pos[1] + 10, 5, 20))  # Stem
-            pygame.draw.ellipse(surface, icon_color, (pos[0] + 5, pos[1] + 25, 15, 10))  # Note head
-            pygame.draw.line(surface, icon_color, (pos[0] + 5, pos[1]), (pos[0] + 5, pos[1] + 10), 3)  # Flag
-        elif icon_type == "sound":
-            # Speaker icon
-            pygame.draw.rect(surface, icon_color, (pos[0], pos[1], 15, 30))  # Body
-            pygame.draw.polygon(surface, icon_color, [(pos[0] + 15, pos[1] + 5), (pos[0] + 30, pos[1] + 15), (pos[0] + 15, pos[1] + 25)])  # Cone
+    def _draw_row_label(self, key, row_rect):
+        label = self.option_font.render(get_translation(key), True, self.text_color)
+        self.screen.blit(label, label.get_rect(midleft=(self.panel_x + 50, row_rect.centery)))
+
+    def _draw_text_button(self, rect, key, hover):
+        pygame.draw.rect(self.screen, self.button_hover_color if hover else self.button_color, rect, border_radius=25)
+        pygame.draw.rect(self.screen, (255, 255, 255), rect, 2, border_radius=25)
+        text = self.button_font.render(get_translation(key), True, (255, 255, 255))
+        self.screen.blit(text, text.get_rect(center=rect.center))
 
     def draw(self):
         """Vẽ toàn bộ giao diện settings - added shadow, icons, and semi-transparent panel with Surface"""
@@ -265,66 +200,39 @@ class SettingsMenu:
         title_text = self.title_font.render(get_translation("settings"), True, self.title_color)
         title_rect = title_text.get_rect(center=(self.width // 2, self.panel_y + 50))
         # Glow: draw slightly offset with semi-transparent color
-        glow_color = (255, 255, 255, 100)
         for dx, dy in [(-1, -1), (1, -1), (-1, 1), (1, 1)]:
             glow_text = self.title_font.render(get_translation("settings"), True, self.highlight_color)
             self.screen.blit(glow_text, title_rect.move(dx, dy))
         self.screen.blit(title_text, title_rect)
 
-        # Music label
-        music_text = self.option_font.render(get_translation("music"), True, self.text_color)
-        music_rect = music_text.get_rect(midleft=(self.panel_x + 50, self.music_slider_rect.centery))
-        self.screen.blit(music_text, music_rect)
+        self._draw_row_label("music", self.music_slider_rect)
 
         music_toggle_rect = self.draw_toggle(self.screen, self.music_toggle_rect, self.temp_settings["music_enabled"])
         music_knob_rect = self.draw_slider(self.screen, self.music_slider_rect,
                                            self.temp_settings["music_volume"],
                                            self.music_slider_hover, self.dragging_music)
 
-        # Sound Effects label
-        sfx_text = self.option_font.render(get_translation("sound_effects"), True, self.text_color)
-        sfx_rect = sfx_text.get_rect(midleft=(self.panel_x + 50, self.sfx_slider_rect.centery))
-        self.screen.blit(sfx_text, sfx_rect)
+        self._draw_row_label("sound_effects", self.sfx_slider_rect)
 
         sfx_toggle_rect = self.draw_toggle(self.screen, self.sfx_toggle_rect, self.temp_settings["sfx_enabled"])
         sfx_knob_rect = self.draw_slider(self.screen, self.sfx_slider_rect,
                                          self.temp_settings["sfx_volume"],
                                          self.sfx_slider_hover, self.dragging_sfx)
 
-        # Control Scheme label
-        scheme_text = self.option_font.render(get_translation("control_scheme"), True, self.text_color)
-        scheme_rect = scheme_text.get_rect(midleft=(self.panel_x + 50, self.control_selector_rect.centery))
-        self.screen.blit(scheme_text, scheme_rect)
+        self._draw_row_label("control_scheme", self.control_selector_rect)
 
         selected_scheme = self.control_schemes.index(self.temp_settings["control_scheme"])
         control_selector_rect = self.draw_option_selector(self.screen, self.control_selector_rect,
                                                           self.control_schemes, selected_scheme)
 
-        # Language label
-        lang_text = self.option_font.render(get_translation("language"), True, self.text_color)
-        lang_rect = lang_text.get_rect(midleft=(self.panel_x + 50, self.language_selector_rect.centery))
-        self.screen.blit(lang_text, lang_rect)
+        self._draw_row_label("language", self.language_selector_rect)
 
         selected_lang = self.languages.index(self.temp_settings["language"])
         language_selector_rect = self.draw_option_selector(self.screen, self.language_selector_rect,
                                                            self.languages, selected_lang)
 
-        # === BUTTONS ===
-        # Back button
-        back_color = self.button_hover_color if self.back_hover else self.button_color
-        pygame.draw.rect(self.screen, back_color, self.back_button_rect, border_radius=25)
-        pygame.draw.rect(self.screen, (255, 255, 255), self.back_button_rect, 2, border_radius=25)  # Added border for better look
-        back_text = self.button_font.render(get_translation("back"), True, (255, 255, 255))
-        back_text_rect = back_text.get_rect(center=self.back_button_rect.center)
-        self.screen.blit(back_text, back_text_rect)
-
-        # Apply button
-        apply_color = self.button_hover_color if self.apply_hover else self.button_color
-        pygame.draw.rect(self.screen, apply_color, self.apply_button_rect, border_radius=25)
-        pygame.draw.rect(self.screen, (255, 255, 255), self.apply_button_rect, 2, border_radius=25)  # Added border
-        apply_text = self.button_font.render(get_translation("apply"), True, (255, 255, 255))
-        apply_text_rect = apply_text.get_rect(center=self.apply_button_rect.center)
-        self.screen.blit(apply_text, apply_text_rect)
+        self._draw_text_button(self.back_button_rect, "back", self.back_hover)
+        self._draw_text_button(self.apply_button_rect, "apply", self.apply_hover)
 
         return {
             "music_toggle": music_toggle_rect,
@@ -370,12 +278,12 @@ class SettingsMenu:
             elif ui_elements["music_toggle"].collidepoint(mouse_pos):
                 self.temp_settings["music_enabled"] = not self.temp_settings["music_enabled"]
                 self.sound_manager.button_click_sound.play()
-                self.preview_audio_settings()
+                self.sound_manager.apply_settings(self.temp_settings)
 
             elif ui_elements["sfx_toggle"].collidepoint(mouse_pos):
                 self.temp_settings["sfx_enabled"] = not self.temp_settings["sfx_enabled"]
                 self.sound_manager.button_click_sound.play()
-                self.preview_audio_settings()
+                self.sound_manager.apply_settings(self.temp_settings)
 
             elif ui_elements["music_slider"].collidepoint(mouse_pos) or self.music_slider_rect.collidepoint(mouse_pos):
                 self.dragging_music = True
@@ -386,22 +294,10 @@ class SettingsMenu:
                 self.update_sfx_volume(mouse_pos)
 
             elif ui_elements["control_selector"].collidepoint(mouse_pos):
-                current_index = self.control_schemes.index(self.temp_settings["control_scheme"])
-                if mouse_pos[0] < ui_elements["control_selector"].centerx:
-                    new_index = (current_index - 1) % len(self.control_schemes)
-                else:
-                    new_index = (current_index + 1) % len(self.control_schemes)
-                self.temp_settings["control_scheme"] = self.control_schemes[new_index]
-                self.sound_manager.button_click_sound.play()
+                self._step_option("control_scheme", self.control_schemes, ui_elements["control_selector"], mouse_pos)
 
             elif ui_elements["language_selector"].collidepoint(mouse_pos):
-                current_index = self.languages.index(self.temp_settings["language"])
-                if mouse_pos[0] < ui_elements["language_selector"].centerx:
-                    new_index = (current_index - 1) % len(self.languages)
-                else:
-                    new_index = (current_index + 1) % len(self.languages)
-                self.temp_settings["language"] = self.languages[new_index]
-                self.sound_manager.button_click_sound.play()
+                self._step_option("language", self.languages, ui_elements["language_selector"], mouse_pos)
 
         elif event.type == pygame.MOUSEBUTTONUP:
             self.dragging_music = False
@@ -415,27 +311,20 @@ class SettingsMenu:
 
         return None
 
+    def _step_option(self, key, options, rect, mouse_pos):
+        step = -1 if mouse_pos[0] < rect.centerx else 1
+        self.temp_settings[key] = options[(options.index(self.temp_settings[key]) + step) % len(options)]
+        self.sound_manager.button_click_sound.play()
+
     def update_music_volume(self, mouse_pos):
         relative_x = max(0, min(mouse_pos[0] - self.music_slider_rect.left, self.music_slider_rect.width))
         self.temp_settings["music_volume"] = relative_x / self.music_slider_rect.width
-        self.preview_audio_settings()
+        self.sound_manager.apply_settings(self.temp_settings)
 
     def update_sfx_volume(self, mouse_pos):
         relative_x = max(0, min(mouse_pos[0] - self.sfx_slider_rect.left, self.sfx_slider_rect.width))
         self.temp_settings["sfx_volume"] = relative_x / self.sfx_slider_rect.width
-        self.preview_audio_settings()
-
-    def preview_audio_settings(self):
-        if self.temp_settings["music_enabled"]:
-            pygame.mixer.music.set_volume(self.temp_settings["music_volume"])
-        else:
-            pygame.mixer.music.set_volume(0)
-
-        sfx_volume = self.temp_settings["sfx_volume"] if self.temp_settings["sfx_enabled"] else 0
-        for attr_name in dir(self.sound_manager):
-            attr = getattr(self.sound_manager, attr_name)
-            if isinstance(attr, pygame.mixer.Sound):
-                attr.set_volume(sfx_volume)
+        self.sound_manager.apply_settings(self.temp_settings)
 
     def run(self):
         running = True
@@ -456,5 +345,5 @@ class SettingsMenu:
             pygame.display.flip()
         if result == 'back':
             self.temp_settings = original_settings.copy()
-            self.apply_audio_settings()  # Revert audio
+            self.sound_manager.apply_settings(self.settings)  # Hoàn tác phần nghe thử
         return result

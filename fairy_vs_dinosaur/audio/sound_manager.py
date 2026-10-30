@@ -55,6 +55,17 @@ class SoundManager:
         self.throw_channel = pygame.mixer.Channel(11)  # Channel cho throw
 
 
+    def apply_settings(self, settings):
+        """Áp dụng âm lượng nhạc nền và hiệu ứng theo settings"""
+        music_on = settings.get("music_enabled", True)
+        pygame.mixer.music.set_volume(settings.get("music_volume", 0.8) if music_on else 0)
+
+        sfx_on = settings.get("sfx_enabled", True)
+        sfx_volume = settings.get("sfx_volume", 0.8) if sfx_on else 0
+        for attr in vars(self).values():
+            if isinstance(attr, pygame.mixer.Sound):
+                attr.set_volume(sfx_volume)
+
     def play_menu_music(self):
         pygame.mixer.music.load(self.menu_music)
         pygame.mixer.music.play(-1)  # Lặp vô hạn

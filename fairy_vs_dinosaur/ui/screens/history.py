@@ -1,20 +1,19 @@
-import io
 import json
 import os
 
-import matplotlib.pyplot as plt
 import pandas as pd
 import pygame
 
 from fairy_vs_dinosaur.config import HISTORY_FILE
+from fairy_vs_dinosaur.ui.screens.history_chart import render_comparison_chart
+from fairy_vs_dinosaur.ui.screens.history_table import draw_summary_table
 
 
 class HistoryMenu:
-    def __init__(self, screen, sound_manager, background, back_callback):
+    def __init__(self, screen, sound_manager, background):
         self.screen = screen
         self.sound_manager = sound_manager
         self.background = background
-        self.back_callback = back_callback
         self.running = True
         self.timer = pygame.time.Clock()
         self.fps = 60
@@ -128,63 +127,11 @@ class HistoryMenu:
         self.calculate_content_height()
 
     def generate_chart(self):
-        """Generate beautiful and clear comparison chart for algorithms"""
         if self.df.empty:
             return
-
         try:
-            plt.style.use('dark_background')
-            # Create a simpler, cleaner chart layout
-            fig, axes = plt.subplots(2, 2, figsize=(14, 10), facecolor='#1a1a2e')
-            fig.suptitle('Algorithm Performance', color='white', fontsize=16, fontweight='bold', y=0.95)
-
-            # Group by algorithm and calculate averages
-            metrics = ['execution_time', 'expanded_nodes', 'path_length', 'success_rate']
-            metric_names = ['Execution Time (s)', 'Expanded Nodes', 'Path Length', 'Success Rate (%)']
-
-            grouped = self.df.groupby('algorithm')[metrics].mean().reset_index()
-            algorithms = grouped['algorithm'].tolist()
-
-            colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54a0ff']
-
-            for i, (metric, metric_name) in enumerate(zip(metrics, metric_names)):
-                ax = axes[i // 2, i % 2]
-                bars = ax.bar(algorithms, grouped[metric], color=colors[:len(algorithms)], alpha=0.8)
-
-                ax.set_title(metric_name, color='white', fontweight='bold', fontsize=12)
-                ax.set_ylabel(metric_name, color='white', fontsize=10)
-                ax.tick_params(axis='x', rotation=45, colors='white', labelsize=9)
-                ax.tick_params(axis='y', colors='white', labelsize=9)
-                ax.grid(True, alpha=0.3, color='gray')
-
-                # Set background color
-                ax.set_facecolor('#2a2a4a')
-
-                # Add value labels on bars
-                for bar in bars:
-                    height = bar.get_height()
-                    if height > 0:  # Only label if height is significant
-                        if metric == 'success_rate':
-                            label = f'{height:.1f}%'
-                        elif metric == 'execution_time':
-                            label = f'{height:.3f}'
-                        else:
-                            label = f'{height:.0f}'
-
-                        ax.text(bar.get_x() + bar.get_width() / 2., height,
-                                label, ha='center', va='bottom',
-                                fontsize=8, color='white', fontweight='bold')
-
-            plt.tight_layout(rect=[0, 0, 1, 0.93])
-
-            # Convert to pygame surface with higher quality
-            buf = io.BytesIO()
-            plt.savefig(buf, format='png', dpi=150, bbox_inches='tight',
-                        facecolor='#1a1a2e', edgecolor='none')
-            buf.seek(0)
-            self.chart_image = pygame.image.load(buf)
-            plt.close()
-        except Exception as e:
+            self.chart_image = render_comparison_chart(self.df)
+        except (ValueError, KeyError, TypeError, pygame.error) as e:
             print(f"Error generating chart: {e}")
 
     def draw_panel(self, x, y, width, height, title=None):
@@ -228,101 +175,9 @@ class HistoryMenu:
             self.screen.blit(hint_text, hint_rect)
             return
 
-        try:
-            # Vẽ panel cho bảng với chiều cao lớn hơn
-            table_panel = self.draw_panel(50, actual_y, self.screen.get_width() - 100, self.table_panel_height,
-                                          "Algorithm Performance Summary")
-
-            # Tính toán averages
-            metrics = ['execution_time', 'expanded_nodes', 'path_length', 'memory_usage', 'success_rate', 'total_time']
-            grouped = self.df.groupby('algorithm')[metrics].mean().reset_index()
-
-            # Vị trí và kích thước bảng - tăng chiều cao
-            start_x = table_panel.x + 15
-            start_y = table_panel.y + 70
-            row_height = 36  # Increased row height
-            # Tính toán col_width động dựa trên số cột và chiều rộng màn hình
-            num_columns = 7  # ALGORITHM + 6 metrics
-            col_width = (table_panel.width - 30) // num_columns
-
-            # Headers với màu gradient
-            headers = ['ALGORITHM', 'TIME(s)', 'NODES', 'PATH', 'MEMORY', 'SUCCESS%', 'TOTAL(s)']
-
-            for i, header in enumerate(headers):
-                header_bg = pygame.Rect(start_x + i * col_width, start_y, col_width, row_height)
-
-                # Gradient background cho header
-                for y_pos in range(row_height):
-                    ratio = y_pos / row_height
-                    r = int(70 + (40 - 70) * ratio)
-                    g = int(130 + (60 - 130) * ratio)
-                    b = int(255 + (80 - 255) * ratio)
-                    pygame.draw.line(self.screen, (r, g, b),
-                                     (header_bg.x, header_bg.y + y_pos),
-                                     (header_bg.right, header_bg.y + y_pos))
-
-                pygame.draw.rect(self.screen, self.colors['border'], header_bg, 1)
-
-                header_text = self.table_font.render(header, True, self.colors['text_primary'])
-                text_rect = header_text.get_rect(center=header_bg.center)
-                self.screen.blit(header_text, text_rect)
-
-            # Dữ liệu với màu xen kẽ
-            for row_idx, (_, row) in enumerate(grouped.iterrows()):
-                y_pos = start_y + (row_idx + 1) * row_height
-
-                # Màu nền xen kẽ
-                row_color = self.colors['row_even'] if row_idx % 2 == 0 else self.colors['row_odd']
-                row_rect = pygame.Rect(start_x, y_pos, col_width * len(headers), row_height)
-                pygame.draw.rect(self.screen, row_color, row_rect)
-
-                for col_idx, col_name in enumerate(['algorithm'] + metrics):
-                    cell_rect = pygame.Rect(start_x + col_idx * col_width, y_pos, col_width, row_height)
-                    pygame.draw.rect(self.screen, self.colors['border'], cell_rect, 1)
-
-                    # Định dạng giá trị
-                    if col_name == 'algorithm':
-                        value = str(row[col_name])
-                        color = self.colors['accent_light']
-                    elif col_name == 'success_rate':
-                        value = f"{row[col_name]:.1f}%"
-                        # Màu dựa trên tỷ lệ thành công
-                        if row[col_name] >= 80:
-                            color = self.colors['success']
-                        elif row[col_name] >= 50:
-                            color = self.colors['warning']
-                        else:
-                            color = self.colors['error']
-                    elif col_name in ['execution_time', 'total_time']:
-                        value = f"{row[col_name]:.3f}"  # More decimal places for time
-                        color = self.colors['text_primary']
-                    else:
-                        value = f"{row[col_name]:.0f}"
-                        color = self.colors['text_primary']
-
-                    cell_text = self.table_font.render(value, True, color)
-                    text_rect = cell_text.get_rect(center=cell_rect.center)
-                    self.screen.blit(cell_text, text_rect)
-
-            # Thống kê tổng quan
-            stats_y = table_panel.bottom - 45
-            total_games = len(self.df)
-            algorithms_used = self.df['algorithm'].nunique()
-            best_algorithm = grouped.loc[grouped['success_rate'].idxmax(), 'algorithm']
-            best_success = grouped['success_rate'].max()
-
-            stats_texts = [
-                f"Games: {total_games}",
-                f"Algorithms: {algorithms_used}",
-                f"Best: {best_algorithm} ({best_success:.1f}%)"
-            ]
-
-            for i, text in enumerate(stats_texts):
-                stats_surface = self.stats_font.render(text, True, self.colors['accent_light'])
-                self.screen.blit(stats_surface, (start_x + i * 220, stats_y))
-
-        except Exception as e:
-            print(f"Error drawing table: {e}")
+        table_panel = self.draw_panel(50, actual_y, self.screen.get_width() - 100, self.table_panel_height,
+                                      "Algorithm Performance Summary")
+        draw_summary_table(self.screen, table_panel, self.df, self.table_font, self.stats_font, self.colors)
 
     def draw_chart(self, y_offset=0):
         """Vẽ biểu đồ với kích thước được cải thiện"""
@@ -484,7 +339,6 @@ class HistoryMenu:
     def back(self):
         """Quay lại menu chính"""
         self.running = False
-        self.back_callback()
 
     def draw_title(self, y_offset=0):
         title_text = self.title_font.render("ALGORITHM PERFORMANCE HISTORY", True,

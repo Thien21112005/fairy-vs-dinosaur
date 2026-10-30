@@ -4,7 +4,7 @@ from datetime import datetime
 
 import pygame
 
-from fairy_vs_dinosaur.config import asset, HISTORY_FILE, SETTINGS_FILE
+from fairy_vs_dinosaur.config import asset, HISTORY_FILE
 from fairy_vs_dinosaur.audio.sound_manager import SoundManager
 from fairy_vs_dinosaur.core.board import boards
 from fairy_vs_dinosaur.core.level import Level
@@ -21,8 +21,9 @@ from fairy_vs_dinosaur.pathfinding.dfs import DFSPathFinder
 from fairy_vs_dinosaur.pathfinding.greedy import GreedyPathFinder
 from fairy_vs_dinosaur.pathfinding.hill_climbing import HillClimbingPathFinder
 from fairy_vs_dinosaur.pathfinding.ucs import UCSPathFinder
+from fairy_vs_dinosaur.settings_store import load_settings
 from fairy_vs_dinosaur.ui.hud import UI
-from fairy_vs_dinosaur.ui.level_complete import LevelCompleteAnimation
+from fairy_vs_dinosaur.ui.level_complete import LevelCompleteAnimation, LevelCompleteMenu
 from fairy_vs_dinosaur.ui.pause_menu import PauseMenu
 
 
@@ -112,6 +113,7 @@ class PacmanGame:
         self.clyde = Clyde(self)
         self.pause_menu = PauseMenu(self)
         self.level_anim = LevelCompleteAnimation(self)
+        self.level_menu = LevelCompleteMenu(self)
         self.show_level_complete = False
         self.ghosts = [self.blinky, self.pinky, self.inky, self.clyde]
         self.ready_timer = self.sound_manager.intro_sound.get_length() * 1000  # ms
@@ -124,21 +126,16 @@ class PacmanGame:
         self.saved_hint_state = False  # Lưu trạng thái hint trước khi death sequence
         self.hint_restored = False  # Đánh dấu đã khôi phục hint chưa
 
-        # Load settings
-        self.settings_file = SETTINGS_FILE
-        self.load_settings()
+        self.settings = load_settings()
 
         # Control scheme
         self.control_scheme = self.settings.get("control_scheme", "Arrow Keys")
-        # Áp dụng cài đặt âm thanh
-        self.apply_audio_settings()
+        self.sound_manager.apply_settings(self.settings)
 
         # Thêm cho countdown
         self.countdown_active = False
         self.countdown_timer = 0
         self.countdown_font = pygame.font.SysFont('monospace', 100, bold=True)
-
-        self.main_menu = None
 
         # Thêm biến đếm số ghost ăn trong frightened mode hiện tại
         self.eaten_ghosts_count = 0
@@ -178,10 +175,6 @@ class PacmanGame:
 
         self.history_file = HISTORY_FILE
 
-    def set_main_menu(self, main_menu):
-        """Thiết lập reference tới main menu để có thể quay về"""
-        self.main_menu = main_menu
-
     def restart_game(self):
         """Khởi động lại game hoàn toàn"""
         # Dừng tất cả âm thanh
@@ -196,7 +189,7 @@ class PacmanGame:
                 return False
             if self.pause_menu.handle_events(event):
                 continue
-            elif event.type == pygame.KEYDOWN and not self.show_ready and not self.ui.game_over_screen:
+            elif event.type == pygame.KEYDOWN and not self.show_ready and not self.ui.game_over.visible:
                 # Nếu đang ở AI mode, bỏ qua input bàn phím cho di chuyển để tránh conflict
                 if self.ai_mode:
                     continue
@@ -245,7 +238,7 @@ class PacmanGame:
                     self.player.row = 24
                     self.player.x = self.player.col * self.num2_c + self.num2_c / 2.0
                     self.player.y = self.player.row * self.num1_r + self.num1_r / 2.0
-            elif event.type == pygame.MOUSEBUTTONDOWN and not self.ui.game_over_screen:
+            elif event.type == pygame.MOUSEBUTTONDOWN and not self.ui.game_over.visible:
                 mouse_pos = pygame.mouse.get_pos()
                 if self.ui.hint_rect.collidepoint(mouse_pos):
                     self.show_hint = not self.show_hint
@@ -332,26 +325,6 @@ class PacmanGame:
             self.screen.blit(fade_surface, (0, 0))
             pygame.display.flip()
             self.timer.tick(60)
-
-    def load_settings(self):
-        """Load settings từ file"""
-        default_settings = {
-            "music_volume": 0.8,
-            "sfx_volume": 0.8,
-            "music_enabled": True,
-            "sfx_enabled": True,
-            "control_scheme": "Arrow Keys",
-            "language": "English"
-        }
-
-        try:
-            if os.path.exists(self.settings_file):
-                with open(self.settings_file, 'r') as f:
-                    self.settings = json.load(f)
-            else:
-                self.settings = default_settings
-        except:
-            self.settings = default_settings
 
     def draw_game_screen(self):
         """Phương thức helper để vẽ màn hình game"""
@@ -490,19 +463,15 @@ class PacmanGame:
                 continue
 
             # Xử lý game over screen
-            if self.ui.game_over_screen:
-                # Cập nhật hiệu ứng fade
-                self.ui.game_over_fade_alpha = min(255, self.ui.game_over_fade_alpha + self.ui.game_over_fade_speed)
-
-                mouse_pos = pygame.mouse.get_pos()
-                self.ui.update_game_over_hover(mouse_pos)
+            if self.ui.game_over.visible:
+                self.ui.game_over.update(pygame.mouse.get_pos())
 
                 # Xử lý sự kiện
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         self.running = False
                     else:
-                        self.ui.handle_game_over_events(event)
+                        self.ui.game_over.handle_event(event)
 
                 # Vẽ game
                 self.screen.fill('black')
@@ -518,7 +487,7 @@ class PacmanGame:
                 self.ui.draw_lives()
 
                 # Vẽ game over screen
-                self.ui.draw_game_over_screen()
+                self.ui.game_over.draw()
 
                 pygame.display.flip()
                 continue
@@ -552,7 +521,7 @@ class PacmanGame:
                 # THÊM: Xử lý level complete menu
             if self.show_level_complete:
                 mouse_pos = pygame.mouse.get_pos()
-                self.level_anim.update_level_complete_hover(mouse_pos)
+                self.level_menu.update_hover(mouse_pos)
                 # Xử lý sự kiện
                 if not self.handle_level_complete_events():
                     continue
@@ -568,7 +537,7 @@ class PacmanGame:
                 self.ui.draw_header()
                 self.ui.draw_lives()
                 # Vẽ level complete menu
-                self.level_anim.draw_level_complete_menu()
+                self.level_menu.draw(self.screen)
                 pygame.display.flip()
                 continue
             # Xử lý trạng thái just_reset
@@ -596,8 +565,7 @@ class PacmanGame:
 
                     if self.lives <= 0:
                         self.game_over = True
-                        self.ui.game_over_screen = True  # Kích hoạt màn hình game over
-                        self.ui.game_over_fade_alpha = 0  # Bắt đầu hiệu ứng fade
+                        self.ui.game_over.show()
                         self.sound_manager.play_game_over()  # Phát âm thanh game over
                         print("GAME OVER")
                         self.solve_locked = False  # Unlock solve khi game over
@@ -855,21 +823,6 @@ class PacmanGame:
         if not self.game_over:
             self.sound_manager.play_ghost_move()
 
-    def apply_audio_settings(self):
-        """Áp dụng cài đặt âm thanh từ settings"""
-        # Áp dụng cho music
-        if self.settings.get("music_enabled", True):
-            pygame.mixer.music.set_volume(self.settings.get("music_volume", 0.8))
-        else:
-            pygame.mixer.music.set_volume(0)
-        # Áp dụng cho sound effects
-        sfx_volume = self.settings.get("sfx_volume", 0.8) if self.settings.get("sfx_enabled", True) else 0
-        # Cập nhật volume cho tất cả sound effects
-        for attr_name in dir(self.sound_manager):
-            attr = getattr(self.sound_manager, attr_name)
-            if isinstance(attr, pygame.mixer.Sound):
-                attr.set_volume(sfx_volume)
-
     def reset_for_next_level(self):
         """Reset game cho level tiếp theo sau khi hoàn thành level"""
         # Tăng level num đã làm trong start()
@@ -943,7 +896,7 @@ class PacmanGame:
                 self.running = False
                 return False
             else:
-                if self.level_anim.handle_level_complete_events(event):
+                if self.level_menu.handle_events(event):
                     continue
         return True
 
