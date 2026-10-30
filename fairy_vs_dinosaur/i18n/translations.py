@@ -1,5 +1,8 @@
 translations = {
     "English": {
+        "paused": "PAUSED",
+        "resume": "RESUME",
+        "level complete": "LEVEL COMPLETE",
         "play_game": "PLAY GAME",
         "history": "HISTORY",
         "settings": "SETTINGS",
@@ -47,6 +50,9 @@ translations = {
         "continue": "CONTINUE"
     },
     "Vietnamese": {
+        "paused": "TẠM DỪNG",
+        "resume": "TIẾP TỤC",
+        "level complete": "HOÀN THÀNH MÀN",
         "play_game": "CHƠI TRÒ CHƠI",
         "history": "LỊCH SỬ",
         "settings": "CÀI ĐẶT",
@@ -94,6 +100,9 @@ translations = {
         "continue": "TIẾP TỤC"
     },
     "French": {
+        "paused": "PAUSE",
+        "resume": "REPRENDRE",
+        "level complete": "NIVEAU TERMINÉ",
         "play_game": "JOUER",
         "history": "HISTORIQUE",
         "settings": "PARAMÈTRES",
@@ -141,6 +150,9 @@ translations = {
         "continue": "CONTINUER"
     },
     "Spanish": {
+        "paused": "PAUSA",
+        "resume": "REANUDAR",
+        "level complete": "NIVEL COMPLETO",
         "play_game": "JUGAR",
         "history": "HISTORIAL",
         "settings": "AJUSTES",
