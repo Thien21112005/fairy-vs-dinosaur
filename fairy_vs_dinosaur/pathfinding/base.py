@@ -1,0 +1,94 @@
+import time
+
+
+class BasePathFinder:
+    """Phần dùng chung của các thuật toán: duyệt ô kề, chi phí, heuristic và ghi metrics."""
+
+    BASE_MEMORY_KB = 50  # KB cho các biến và cấu trúc cơ bản
+
+    def __init__(self, game):
+        self.game = game
+        self.directions = [(1, 0, 0), (-1, 0, 1), (0, -1, 2), (0, 1, 3)]  # (dx, dy, dir): phải, trái, lên, xuống
+
+    def find_path_to_nearest_pellet(self, start_row, start_col):
+        raise NotImplementedError
+
+    def _neighbors(self, row, col):
+        """Các ô kề nằm trong bản đồ, có xử lý đi xuyên đường hầm. Chưa kiểm tra tường."""
+        for dx, dy, _ in self.directions:
+            next_row = row + dy
+            next_col = col + dx
+            if dy == 0 and (next_col < 0 or next_col >= self.game.col):
+                if not self.game.level.is_tunnel_row(row):
+                    continue
+                next_col = next_col % self.game.col
+            if 0 <= next_row < self.game.row and 0 <= next_col < self.game.col:
+                yield next_row, next_col
+
+    def _is_blocked(self, r, c):
+        return self.game.level.checktuong_for_pacman(r, c)
+
+    def _is_pellet(self, r, c):
+        return self.game.level.level[r][c] in [1, 2]
+
+    def _pellets(self):
+        return [(r, c) for r in range(self.game.row) for c in range(self.game.col) if self._is_pellet(r, c)]
+
+    @staticmethod
+    def _heuristic(a, b):
+        """Khoảng cách Manhattan"""
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+    def _distance_to_nearest(self, node, pellets):
+        return min(self._heuristic(node, p) for p in pellets)
+
+    def _get_cost(self, r, c):
+        """Chi phí bước đi: pellet rẻ để ưu tiên, ô trống đắt hơn, cộng thêm phạt khi gần ghost."""
+        v = self.game.level.level[r][c]
+        if v == 2:  # Power pellet
+            base_cost = 0.1
+        elif v == 1:  # Pellet thường
+            base_cost = 0.5
+        else:  # Ô trống
+            base_cost = 2.0
+        return base_cost + self._get_ghost_penalty(r, c)
+
+    def _get_ghost_penalty(self, r, c):
+        penalty = 0
+        if self.game.mode_manager.frightened_active:
+            return penalty
+        for ghost in self.game.ghosts:
+            if not ghost.eaten and not ghost.returning_home:
+                dist = abs(r - ghost.row) + abs(c - ghost.col)
+                if dist <= 2:
+                    penalty += 100
+                elif dist <= 4:
+                    penalty += 10
+        return penalty
+
+    @staticmethod
+    def _reconstruct(came_from, node):
+        path = []
+        while node is not None:
+            path.append(node)
+            node = came_from[node]
+        path.reverse()
+        return path
+
+    def _finish(self, start_time, expanded_nodes, path, visited_count, *extra_memory_kb):
+        """Ghi metrics cho một lần tìm đường rồi trả về path (rỗng nếu thất bại)."""
+        execution_time = (time.time() - start_time) * 1000  # ms
+        memory_usage = self.BASE_MEMORY_KB + visited_count * 0.05 + len(path) * 0.03
+        for kb in extra_memory_kb:
+            memory_usage += kb
+        self._update_metrics(execution_time, expanded_nodes, len(path), memory_usage, bool(path))
+        return path
+
+    def _update_metrics(self, execution_time, expanded_nodes, path_length, memory_usage, success):
+        """Cập nhật metrics vào game"""
+        self.game.metrics['execution_time'] = execution_time
+        self.game.metrics['expanded_nodes'] = expanded_nodes
+        self.game.metrics['path_lengths'].append(path_length)
+        self.game.metrics['memory_usage'] = max(self.game.metrics['memory_usage'], memory_usage)
+        self.game.metrics['success'] = 1 if success else 0
+        self.game.metrics['calls'] += 1
