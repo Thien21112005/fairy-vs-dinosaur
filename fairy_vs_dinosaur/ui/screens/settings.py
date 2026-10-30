@@ -1,7 +1,7 @@
 import pygame
 
 from fairy_vs_dinosaur.i18n import get_translation
-from fairy_vs_dinosaur.settings_store import load_settings, save_settings
+from fairy_vs_dinosaur.settings_store import CONTROL_SCHEMES, LANGUAGES, load_settings, save_settings
 
 
 class SettingsMenu:
@@ -38,10 +38,10 @@ class SettingsMenu:
         self.shadow_color = (0, 0, 0, 50)  # Soft shadow for panel
 
         # Control scheme options
-        self.control_schemes = ["Arrow Keys", "WASD", "Mixed"]  # Keep in English as technical terms
+        self.control_schemes = CONTROL_SCHEMES
 
         # Language options
-        self.languages = ["English", "Vietnamese", "French", "Spanish"]  # Keep names in English
+        self.languages = LANGUAGES
 
         # Panel dimensions - reverted height to original since fullscreen is removed
         self.panel_width = 700
