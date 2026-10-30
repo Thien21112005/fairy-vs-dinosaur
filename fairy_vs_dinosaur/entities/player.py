@@ -47,6 +47,7 @@ class Player:
         self.y = self.row * self.game.num1_r + self.game.num1_r / 2.0
         self.direction = 0
         self.requested_direction = -1
+        self.decided_cell = None  # Ô mà AI đã quyết định hướng đi
 
     def _current_animations(self):
         return self.powered_animations if self.game.mode_manager.frightened_active else self.normal_animations
@@ -61,40 +62,47 @@ class Player:
         if self.time >= self.game.frame_ms * self.frame:
             self.time %= self.game.frame_ms * self.frame
 
-        if self.game.ai_mode and not self._update_ai_direction():
-            return
+        if self.game.ai_mode:
+            self._update_ai_direction(dt)
 
         self._apply_requested_direction()
         self._move(dt)
         self._collect_pellet()
 
-        # Đã tới ô đầu của path thì bỏ ô đó đi
-        if self.game.ai_mode and self.ai_path and (self.row, self.col) == self.ai_path[0]:
+        # Sang ô kế tiếp của path thì ô đó thành điểm đầu mới
+        if self.game.ai_mode and len(self.ai_path) > 1 and (self.row, self.col) == self.ai_path[1]:
             self.ai_path = self.ai_path[1:]
 
-    def _update_ai_direction(self):
-        """Quyết định hướng đi tại tâm ô. Trả về False nếu frame này không di chuyển."""
+    def _update_ai_direction(self, dt):
+        """Quyết định hướng đi đúng một lần mỗi ô, khi tới tâm ô, không phụ thuộc thời gian khung hình."""
+        cell = (self.row, self.col)
+        if self.moved and cell == self.decided_cell:
+            return
+
         center_x = self.col * self.game.num2_c + self.game.num2_c / 2.0
         center_y = self.row * self.game.num1_r + self.game.num1_r / 2.0
-        if abs(self.x - center_x) >= 2.0 or abs(self.y - center_y) >= 2.0:
-            return True
+        reach = max(self.game.speed_h, self.game.speed_v) * (dt / 1000.0)
+        if self.moved and (abs(self.x - center_x) > reach or abs(self.y - center_y) > reach):
+            return
 
         self.x = center_x
         self.y = center_y
+        self.decided_cell = cell
 
-        if not self.ai_path or (self.row, self.col) != self.ai_path[0]:
+        if self.game.path_finder.REPLAN_EACH_CELL or not self._is_following_path():
             self.find_next_pellet_target()
-            if not self.ai_path:
-                self._choose_random_direction()
-                return False
 
         if len(self.ai_path) > 1:
             step = self.game.path_finder.step_between(self.row, self.col, *self.ai_path[1])
             if step:
                 self.requested_direction = step[2]
-            else:
-                self.find_next_pellet_target()
-        return True
+        elif not self.ai_path:
+            self._choose_random_direction()
+
+    def _is_following_path(self):
+        if len(self.ai_path) < 2 or self.ai_path[0] != (self.row, self.col):
+            return False
+        return not self.game.level.checktuong_for_pacman(*self.ai_path[1])
 
     def _choose_random_direction(self):
         """Không tìm được đường: chọn ngẫu nhiên một hướng đi được để thoát kẹt."""
@@ -125,7 +133,7 @@ class Player:
         if self.game.level.is_tunnel_row(current_row) and self.direction in (0, 1):
             if proposed_x < 0:
                 proposed_x += self.game.width
-            elif proposed_x > self.game.width:
+            elif proposed_x >= self.game.width:
                 proposed_x -= self.game.width
 
         proposed_col = int(proposed_x // num_c)

@@ -29,6 +29,9 @@ from fairy_vs_dinosaur.ui.level_complete import LevelCompleteAnimation, LevelCom
 from fairy_vs_dinosaur.ui.pause_menu import PauseMenu
 
 
+MAX_FRAME_MS = 50  # Giới hạn bước thời gian để không đi xuyên tường khi bị giật hoặc kéo cửa sổ
+
+
 class PacmanGame(GameInputMixin, GameRenderMixin, GameStatesMixin):
     def __init__(self):
         os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -161,7 +164,7 @@ class PacmanGame(GameInputMixin, GameRenderMixin, GameStatesMixin):
             if self.return_code == 'menu':
                 self.player.clear_path()
                 break
-            dt = self.timer.tick(self.fps)
+            dt = min(self.timer.tick(self.fps), MAX_FRAME_MS)
             self._run_frame(dt, dt / 1000.0)
         return self.return_code
 

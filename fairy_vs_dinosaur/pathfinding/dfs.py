@@ -5,6 +5,7 @@ from fairy_vs_dinosaur.pathfinding.base import BasePathFinder
 
 class DFSPathFinder(BasePathFinder):
     BASE_MEMORY_KB = 50
+    REPLAN_EACH_CELL = False  # Tìm lại ở mỗi ô sẽ khiến DFS đi qua đi lại giữa hai ô
 
     def find_path_to_nearest_pellet(self, start_row, start_col):
         """Tìm đường đến pellet đầu tiên gặp được khi duyệt theo chiều sâu"""

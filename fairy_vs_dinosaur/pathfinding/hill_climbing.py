@@ -6,6 +6,7 @@ from fairy_vs_dinosaur.pathfinding.base import BasePathFinder
 
 class HillClimbingPathFinder(BasePathFinder):
     BASE_MEMORY_KB = 40
+    REPLAN_EACH_CELL = False  # Đường đi ngẫu nhiên, tìm lại ở mỗi ô sẽ không tiến được
 
     def __init__(self, game):
         super().__init__(game)

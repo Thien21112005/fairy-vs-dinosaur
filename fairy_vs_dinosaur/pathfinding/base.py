@@ -5,6 +5,7 @@ class BasePathFinder:
     """Phần dùng chung của các thuật toán: duyệt ô kề, chi phí, heuristic và ghi metrics."""
 
     BASE_MEMORY_KB = 50  # KB cho các biến và cấu trúc cơ bản
+    REPLAN_EACH_CELL = True  # Tìm lại đường ở mỗi ô để né ghost
 
     def __init__(self, game):
         self.game = game
@@ -71,7 +72,7 @@ class BasePathFinder:
         penalty = 0
         if self.game.mode_manager.frightened_active:
             return penalty
-        for ghost in self.game.ghosts:
+        for ghost in self.game.visible_ghosts():
             if not ghost.eaten and not ghost.returning_home:
                 dist = abs(r - ghost.row) + abs(c - ghost.col)
                 if dist <= 2:
