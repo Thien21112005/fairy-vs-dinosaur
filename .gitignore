@@ -12,6 +12,9 @@ venv/
 # Runtime data created by the game
 data/
 
+# Local working notes
+plan/
+
 # OS
 Thumbs.db
 Desktop.ini
