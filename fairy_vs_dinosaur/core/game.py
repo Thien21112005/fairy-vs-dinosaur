@@ -204,6 +204,8 @@ class PacmanGame(GameInputMixin, GameRenderMixin, GameStatesMixin):
 
         self.sound_manager.stop_ghost()
         self.sound_manager.stop_power()
+        self.sound_manager.stop_turn_egg()
+        self.sound_manager.stop_egg_hatch()
         self.sound_manager.play_death()
 
         self.player.die()

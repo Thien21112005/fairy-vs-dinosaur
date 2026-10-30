@@ -109,6 +109,8 @@ class SoundManager:
         self.power_channel.stop()
         self.death_channel.stop()
         self.game_over_channel.stop()
+        self.turn_egg_channel.stop()
+        self.egg_hatch_channel.stop()
         self.hold_channel.stop()  # Dừng hold
         self.flick_channel.stop()  # Dừng flick
         self.throw_channel.stop()  # Dừng throw

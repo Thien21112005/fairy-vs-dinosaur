@@ -44,6 +44,8 @@ class GameStatesMixin:
             self.last_count = 0
             if self.game_started and not self.dying:
                 self.sound_manager.play_ghost_move()
+                if self.mode_manager.frightened_active:
+                    self.sound_manager.play_power(loops=-1)
             if self.sound_manager.intro_channel.get_busy():
                 self.sound_manager.unpause_intro()
             self.sound_manager.unpause_turn_egg()
