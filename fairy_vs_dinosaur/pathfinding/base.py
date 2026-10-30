@@ -49,10 +49,10 @@ class BasePathFinder:
     def _pellets(self):
         return [(r, c) for r in range(self.game.row) for c in range(self.game.col) if self._is_pellet(r, c)]
 
-    @staticmethod
-    def _heuristic(a, b):
-        """Khoảng cách Manhattan"""
-        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+    def _heuristic(self, a, b):
+        """Khoảng cách Manhattan, có tính đường đi tắt qua hầm"""
+        dc = abs(a[1] - b[1])
+        return abs(a[0] - b[0]) + min(dc, self.game.col - dc)
 
     def _distance_to_nearest(self, node, pellets):
         return min(self._heuristic(node, p) for p in pellets)
