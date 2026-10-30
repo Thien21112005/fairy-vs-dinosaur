@@ -5,6 +5,8 @@ from fairy_vs_dinosaur.core.board import boards
 
 WALLS = {3, 4, 5, 6, 7, 8, 9}  # 9 là cổng nhà ma
 GHOST_GATE = 9
+GHOST_HOUSE_ROWS = range(14, 17)
+GHOST_HOUSE_COLS = range(12, 18)
 
 
 class Level:
@@ -46,6 +48,22 @@ class Level:
                 if not ghost.eaten and not ghost.returning_home and ghost.row == r and ghost.col == c:
                     return True
         return False
+
+    def _is_open_outside_house(self, r, c):
+        in_house = r in GHOST_HOUSE_ROWS and c in GHOST_HOUSE_COLS
+        return self._in_bounds(r, c) and self.level[r][c] not in WALLS and not in_house
+
+    def nearest_open_cell(self, r, c):
+        """Ô đi được gần nhất, cho các mục tiêu rơi vào tường, nhà ma hoặc ngoài bản đồ."""
+        r = max(0, min(r, self.game.row - 1))
+        c = max(0, min(c, self.game.col - 1))
+        for radius in range(self.game.row + self.game.col):
+            for dr in range(-radius, radius + 1):
+                dc = radius - abs(dr)
+                for candidate in ((r + dr, c - dc), (r + dr, c + dc)):
+                    if self._is_open_outside_house(*candidate):
+                        return candidate
+        return r, c
 
     def is_tunnel_row(self, row):
         return self.level[row][0] not in WALLS and self.level[row][29] not in WALLS

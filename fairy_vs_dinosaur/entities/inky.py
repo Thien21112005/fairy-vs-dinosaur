@@ -46,7 +46,7 @@ class Inky(Ghost):
         """Minh họa cách Inky chọn mục tiêu: Blinky -> ô trước người chơi -> mục tiêu."""
         blinky = self.game.blinky.row, self.game.blinky.col
         offset = self._pivot_cell()
-        target = self.get_chase_target()
+        target = self.game.level.nearest_open_cell(*self.get_chase_target())
 
         offset_point = self._cell_center(*offset)
         pygame.draw.line(self.game.screen, self.color, self._cell_center(*blinky), offset_point, LINE_WIDTH)

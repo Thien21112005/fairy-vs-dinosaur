@@ -209,16 +209,17 @@ class GhostMovementMixin:
         return True
 
     def _choose_chase_direction(self):
-        target_r, target_c = self.get_chase_target()
-        self.path = self.game.bfs_finder.find_full_path(self.row, self.col, target_r, target_c, self)
-        self._face_next_path_cell()
+        self._head_towards(self.game.level.nearest_open_cell(*self.get_chase_target()))
 
     def _choose_scatter_direction(self):
-        target_r, target_c = self.get_scatter_target()
-        self.path = self.game.bfs_finder.find_full_path(self.row, self.col, target_r, target_c, self)
+        self._head_towards(self.get_scatter_target())
+
+    def _head_towards(self, target):
+        self.path = self.game.bfs_finder.find_full_path(self.row, self.col, *target, self)
 
         if not self._face_next_path_cell():
-            # Không tìm được đường: đi ngẫu nhiên nhưng không quay đầu
-            valid_dirs = [d for d in self._open_directions() if d != OPPOSITE[self.direction]]
+            # Đã tới mục tiêu hoặc không có đường: đi ngẫu nhiên nhưng không quay đầu nếu còn lối khác
+            open_dirs = self._open_directions()
+            valid_dirs = [d for d in open_dirs if d != OPPOSITE[self.direction]] or open_dirs
             if valid_dirs:
                 self.direction = random.choice(valid_dirs)

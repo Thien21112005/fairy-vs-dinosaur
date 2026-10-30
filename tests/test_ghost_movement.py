@@ -88,5 +88,41 @@ class TurnDecisionTest(unittest.TestCase):
                 self.assertLessEqual(seen["missed"] / seen["cells"], 0.02)
 
 
+class ChaseTargetTest(unittest.TestCase):
+    def test_every_target_resolves_to_a_reachable_open_cell(self):
+        game = make_game()
+        for target in [(-5, -5), (40, 40), (0, 0), (15, 14), (13, 15)]:
+            cell = game.level.nearest_open_cell(*target)
+            self.assertFalse(game.level.checktuong_for_ghost(*cell, game.pinky), target)
+            self.assertNotIn(cell[0:2], [(r, c) for r in range(14, 17) for c in range(12, 18)], target)
+            self.assertTrue(game.bfs_finder.find_full_path(12, 15, *cell, game.pinky) or cell == (12, 15), target)
+
+    def test_ghosts_do_not_stand_still_while_chasing(self):
+        game = make_game()
+        use_ai(game, "BFS")
+        game.check_ghost_collisions = lambda: None
+        game.mode_manager.mode_phases = [('chase', float('inf'))]
+
+        stalled = {ghost.name: 0 for ghost in game.ghosts}
+        longest = dict(stalled)
+        previous = {ghost.name: (ghost.x, ghost.y) for ghost in game.ghosts}
+
+        def on_frame():
+            if game.level.remaining_pellets <= 5:
+                game.level.remaining_pellets = 100
+            for ghost in game.ghosts:
+                roaming = game.game_started and ghost.release_timer <= 0 and not ghost.eaten \
+                    and not ghost.hatching and not ghost.returning_home
+                if roaming and (ghost.x, ghost.y) == previous[ghost.name]:
+                    stalled[ghost.name] += 1
+                    longest[ghost.name] = max(longest[ghost.name], stalled[ghost.name])
+                else:
+                    stalled[ghost.name] = 0
+                previous[ghost.name] = (ghost.x, ghost.y)
+        run_frames(game, 3000, on_frame)
+        for name, frames in longest.items():
+            self.assertLess(frames, 30, name)
+
+
 if __name__ == "__main__":
     unittest.main()
