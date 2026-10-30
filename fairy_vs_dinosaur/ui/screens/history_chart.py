@@ -1,7 +1,12 @@
 import io
 
-import matplotlib.pyplot as plt
+import matplotlib
 import pygame
+
+# Backend giao diện (TkAgg) đổi DPI awareness của cả tiến trình, làm cửa sổ game nhảy vị trí và đổi kích thước
+matplotlib.use("Agg")
+
+import matplotlib.pyplot as plt  # noqa: E402
 
 METRICS = ['execution_time', 'expanded_nodes', 'path_length', 'success_rate']
 METRIC_NAMES = ['Execution Time (s)', 'Expanded Nodes', 'Path Length', 'Success Rate (%)']

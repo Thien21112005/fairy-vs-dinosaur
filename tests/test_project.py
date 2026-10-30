@@ -4,6 +4,7 @@ import json
 import os
 import unittest
 
+import matplotlib
 import pygame
 
 from fairy_vs_dinosaur import settings_store
@@ -99,6 +100,11 @@ class ScreensTest(unittest.TestCase):
         pygame.event.clear()
         pygame.event.post(pygame.event.Event(pygame.QUIT))
         self.assertFalse(menu.handle_events())
+
+
+class HistoryChartTest(unittest.TestCase):
+    def test_chart_uses_a_backend_that_leaves_the_game_window_alone(self):
+        self.assertEqual(matplotlib.get_backend().lower(), "agg")
 
 
 class ProjectLayoutTest(unittest.TestCase):
