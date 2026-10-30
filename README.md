@@ -109,6 +109,10 @@ The tests run without a window or sound device and take about a minute. They do 
 | Nghiêm Phú Đăng Quân | UI/UX and sound: interface, menus and audio |
 | Nguyễn Quốc Khoa | Graphics and levels: assets, level layouts and visual effects |
 
+### License
+
+The source code is released under the [MIT License](LICENSE). Files in `assets/` may be subject to the terms of their original creators and are not covered by this license.
+
 ---
 
 ## Tiếng Việt
@@ -211,3 +215,7 @@ Bộ kiểm thử chạy không cần cửa sổ hay thiết bị âm thanh, m�
 | Nguyễn Ngọc Thiện | Lập trình chính: lối chơi, thuật toán tìm đường và tích hợp hệ thống |
 | Nghiêm Phú Đăng Quân | Giao diện và âm thanh: giao diện, menu và âm thanh |
 | Nguyễn Quốc Khoa | Đồ họa và màn chơi: tài nguyên, bố cục màn chơi và hiệu ứng hình ảnh |
+
+### Giấy phép
+
+Mã nguồn được phát hành theo [Giấy phép MIT](LICENSE). Các file trong `assets/` có thể thuộc điều khoản của tác giả gốc và không nằm trong phạm vi giấy phép này.
