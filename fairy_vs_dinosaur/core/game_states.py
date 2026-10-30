@@ -134,13 +134,11 @@ class GameStatesMixin:
             for ghost in self.visible_ghosts():
                 ghost.update(dt)
             self.check_ghost_collisions()
+            self.high_score = max(self.high_score, self.score)
             if self.level.remaining_pellets <= 0 and not self.dying and not self.game_over:
                 self.record_game_history(success=True)  # Trước khi animation tăng số màn
                 self.level_anim.start()
                 return
-
-        if self.score > self.high_score:
-            self.high_score = self.score
 
         self._draw_playing_frame(dt)
 
