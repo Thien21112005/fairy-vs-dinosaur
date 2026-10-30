@@ -36,7 +36,7 @@ class GameRenderMixin:
         self.level.draw_board()
         if self.show_hint and not self.dying and not self.just_reset:
             self.player.draw_path()
-            for ghost in self.ghosts:
+            for ghost in self.visible_ghosts():
                 ghost.draw_path()
         self.player.draw()
         self._draw_visible_ghosts()
@@ -100,7 +100,7 @@ class GameRenderMixin:
         self.level.draw_board()
         if self.show_hint and not self.dying and not self.just_reset:
             self.player.draw_path()
-            for ghost in self.ghosts:
+            for ghost in self.visible_ghosts():
                 ghost.draw_path()
         self._draw_visible_ghosts()
         self._draw_controls()

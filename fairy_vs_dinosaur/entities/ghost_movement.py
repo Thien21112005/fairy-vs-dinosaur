@@ -113,6 +113,9 @@ class GhostMovementMixin:
             self.decided_cell = cell
             self.choose_direction()
 
+    def is_vulnerable(self):
+        return self._frightened_active()
+
     def _frightened_active(self):
         return self.game.mode_manager.frightened_active and not self.frightened_disabled
 

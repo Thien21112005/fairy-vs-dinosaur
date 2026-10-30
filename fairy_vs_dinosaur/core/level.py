@@ -43,10 +43,10 @@ class Level:
         if not self._in_bounds(r, c) or self.level[r][c] in WALLS:
             return True
 
-        if not self.game.mode_manager.frightened_active:
-            for ghost in self.game.visible_ghosts():
-                if not ghost.eaten and not ghost.returning_home and ghost.row == r and ghost.col == c:
-                    return True
+        for ghost in self.game.visible_ghosts():
+            if not ghost.is_vulnerable() and not ghost.eaten and not ghost.returning_home \
+                    and ghost.row == r and ghost.col == c:
+                return True
         return False
 
     def _is_open_outside_house(self, r, c):

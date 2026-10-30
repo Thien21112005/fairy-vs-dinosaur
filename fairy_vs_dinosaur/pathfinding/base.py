@@ -70,10 +70,8 @@ class BasePathFinder:
 
     def _get_ghost_penalty(self, r, c):
         penalty = 0
-        if self.game.mode_manager.frightened_active:
-            return penalty
         for ghost in self.game.visible_ghosts():
-            if not ghost.eaten and not ghost.returning_home:
+            if not ghost.is_vulnerable() and not ghost.eaten and not ghost.returning_home:
                 dist = abs(r - ghost.row) + abs(c - ghost.col)
                 if dist <= 2:
                     penalty += 100

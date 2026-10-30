@@ -139,5 +139,37 @@ class GhostScoreTest(unittest.TestCase):
         game._update_floating_scores(16)
 
 
+class HatchedGhostTest(unittest.TestCase):
+    def setUp(self):
+        self.game = make_game()
+        self.game.game_started = True
+        self.game.mode_manager.activate_frightened()
+        self.ghost = self.game.inky
+        self.ghost.frightened_disabled = True
+        self.ghost.row, self.ghost.col = self.game.player.row, self.game.player.col
+        self.ghost.x, self.ghost.y = self.game.player.x, self.game.player.y
+
+    def test_touching_it_costs_a_life_instead_of_eating_it(self):
+        self.game.check_ghost_collisions()
+        self.assertFalse(self.ghost.eaten)
+        self.assertTrue(self.game.dying)
+
+    def test_the_ai_treats_it_as_dangerous(self):
+        self.assertTrue(self.game.level.checktuong_for_pacman(self.ghost.row, self.ghost.col))
+        self.assertGreater(self.game.path_finder._get_ghost_penalty(self.ghost.row, self.ghost.col), 0)
+
+
+class HiddenGhostPathTest(unittest.TestCase):
+    def test_paused_screen_does_not_draw_paths_of_hidden_ghosts(self):
+        game = make_game()
+        hide_ghosts(game)
+        game.show_hint = True
+        drawn = []
+        for ghost in game.ghosts:
+            ghost.draw_path = lambda name=ghost.name: drawn.append(name)
+        game._draw_full_scene()
+        self.assertEqual(drawn, [])
+
+
 if __name__ == "__main__":
     unittest.main()

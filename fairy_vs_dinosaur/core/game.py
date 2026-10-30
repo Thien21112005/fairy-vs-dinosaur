@@ -177,7 +177,7 @@ class PacmanGame(GameInputMixin, GameRenderMixin, GameStatesMixin):
                 continue
 
             if self.check_collision(self.player, ghost):
-                if self.mode_manager.frightened_active:
+                if ghost.is_vulnerable():
                     self.sound_manager.play_magic()
                     ghost.start_eaten_animation()
                     self.eaten_ghosts_count += 1
