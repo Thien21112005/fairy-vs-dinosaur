@@ -123,5 +123,19 @@ class GameOverTest(unittest.TestCase):
         self.assertEqual(game.return_code, "menu")
 
 
+class GhostScoreTest(unittest.TestCase):
+    def test_eating_more_than_four_ghosts_keeps_the_top_score_and_draws(self):
+        game = make_game()
+        game.game_started = True
+        for expected in [200, 400, 800, 1600, 1600]:
+            ghost = game.blinky
+            ghost.eaten = False
+            ghost.x, ghost.y = game.player.x, game.player.y
+            game.mode_manager.frightened_active = True
+            game.check_ghost_collisions()
+            self.assertEqual(game.floating_scores[-1][0], expected)
+        game._update_floating_scores(16)
+
+
 if __name__ == "__main__":
     unittest.main()

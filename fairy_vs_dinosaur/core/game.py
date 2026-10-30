@@ -179,7 +179,7 @@ class PacmanGame(GameInputMixin, GameRenderMixin, GameStatesMixin):
                     self.sound_manager.play_magic()
                     ghost.start_eaten_animation()
                     self.eaten_ghosts_count += 1
-                    points = 200 * (2 ** (self.eaten_ghosts_count - 1))  # 200, 400, 800, 1600
+                    points = 200 * (2 ** (min(self.eaten_ghosts_count, 4) - 1))  # 200, 400, 800, 1600
                     self.score += points
                     self.floating_scores.append((points, ghost.x, ghost.y + self.y_offset, 1000))
                 elif not self.dying:
