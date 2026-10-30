@@ -57,7 +57,6 @@ class Ghost(GhostMovementMixin, GhostRenderMixin, ABC):
         self.eaten = False
         self.eaten_animation_time = 0
         self.eaten_animation_duration = 800  # ms
-        self.just_eaten = False
         self.returning_home = False
         self.reached_home = False
         self.hatching = False
@@ -109,7 +108,6 @@ class Ghost(GhostMovementMixin, GhostRenderMixin, ABC):
         self.eating = False
         self.eat_animation_time = 0
         self.eaten = False
-        self.just_eaten = False
         self.returning_home = False
         self.reached_home = False
         self.hatching = False
@@ -130,7 +128,6 @@ class Ghost(GhostMovementMixin, GhostRenderMixin, ABC):
     def start_eaten_animation(self):
         self.eaten = True
         self.eaten_animation_time = 0
-        self.just_eaten = True
         self.path = []
 
     def start_returning_home(self):
