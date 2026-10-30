@@ -1,6 +1,6 @@
 # Plan cải thiện FairyvsDinosaur (30/10/2026)
 
-Trạng thái: **chờ duyệt, chưa sửa gì trong dự án.** Plan gồm 7 giai đoạn, mỗi giai đoạn một hoặc vài commit, làm hết trong ngày 30/10/2026.
+Trạng thái: **đã hoàn thành**, xem [PROGRESS.md](PROGRESS.md). Vị trí code bên dưới là theo cấu trúc cũ, trước khi tổ chức lại thư mục.
 
 ## Hiện trạng
 
@@ -18,23 +18,23 @@ Trạng thái: **chờ duyệt, chưa sửa gì trong dự án.** Plan gồm 7 g
 
 | # | Lỗi | Vị trí |
 |---|---|---|
-| 1 | AI bị kẹt tùy thời gian mỗi khung hình: cả 7 thuật toán kẹt nếu khung cố định 16ms hoặc 33ms. Nguyên nhân suy ra từ code, sẽ xác nhận khi sửa. | [pac.py:99](../../pac.py#L99) |
+| 1 | AI bị kẹt tùy thời gian mỗi khung hình: cả 7 thuật toán kẹt nếu khung cố định 16ms hoặc 33ms. Nguyên nhân suy ra từ code, sẽ xác nhận khi sửa. | `pac.py:99` |
 | 2 | DFS và Hill Climbing không ăn hết pellet dù đã tắt hết ma, chạy 25.000 khung (~7 phút). DFS còn 242/244, Hill Climbing còn 61/244. | `dfs.py`, `hill_climbing.py` |
-| 3 | Số liệu History sai: `path_length` thực ra là số lần gọi thuật toán, còn BFS của ma ghi đè số liệu của fairy. Vì vậy so sánh thuật toán không đáng tin. | [main.py:966](../../main.py#L966), [ghost.py:278](../../ghost.py#L278) |
-| 4 | History ghi level cao hơn thực tế 1 (qua level 1 nhưng ghi level 2). | [endgame.py:118](../../endgame.py#L118) |
-| 5 | Chết khi ma đang về nhà thì âm thanh `turn_egg` lặp mãi; ma đang bị ăn cũng không được reset `eaten`. | [main.py:806](../../main.py#L806) |
-| 6 | Pause rồi tiếp tục thì mất nhạc power mode. | [pause_menu.py:708](../../pause_menu.py#L708) |
-| 7 | Sang màn mới không reset frightened và phase, tốc độ ma cũng không tăng theo level. | [main.py:874](../../main.py#L874), [ghost.py:24](../../ghost.py#L24) |
-| 8 | Code gọi `ghost_eat.mp3` nhưng file tên `Ghost_eat.mp3`, nên sẽ lỗi trên Linux/macOS. | [sounds.py:15](../../sounds.py#L15) |
-| 9 | Vẽ header và chữ READY một lần đã mở file JSON 4 lần, vì `get_translation` đọc đĩa mỗi lần gọi. | [dich.py:193](../../dich.py#L193) |
-| 10 | Log debug in ra mỗi khung hình: 1.821 dòng qua các lần qua màn trong bài chạy thử. | [endgame.py:122](../../endgame.py#L122) |
+| 3 | Số liệu History sai: `path_length` thực ra là số lần gọi thuật toán, còn BFS của ma ghi đè số liệu của fairy. Vì vậy so sánh thuật toán không đáng tin. | `main.py:966`, `ghost.py:278` |
+| 4 | History ghi level cao hơn thực tế 1 (qua level 1 nhưng ghi level 2). | `endgame.py:118` |
+| 5 | Chết khi ma đang về nhà thì âm thanh `turn_egg` lặp mãi; ma đang bị ăn cũng không được reset `eaten`. | `main.py:806` |
+| 6 | Pause rồi tiếp tục thì mất nhạc power mode. | `pause_menu.py:708` |
+| 7 | Sang màn mới không reset frightened và phase, tốc độ ma cũng không tăng theo level. | `main.py:874`, `ghost.py:24` |
+| 8 | Code gọi `ghost_eat.mp3` nhưng file tên `Ghost_eat.mp3`, nên sẽ lỗi trên Linux/macOS. | `sounds.py:15` |
+| 9 | Vẽ header và chữ READY một lần đã mở file JSON 4 lần, vì `get_translation` đọc đĩa mỗi lần gọi. | `dich.py:193` |
+| 10 | Log debug in ra mỗi khung hình: 1.821 dòng qua các lần qua màn trong bài chạy thử. | `endgame.py:122` |
 
 ### Mới thấy khi đọc code, sẽ kiểm lại lúc sửa
 
-- Thời gian hiển thị sai dạng `01:75` ([endgame.py:812](../../endgame.py#L812)).
-- Sprite fairy bị vẽ đè khi bật hint lúc qua màn ([main.py:540](../../main.py#L540)).
-- Có thể văng `IndexError` ở đường hầm, dù rất hiếm ([pac.py:168](../../pac.py#L168)).
-- Game tạo lại font mỗi khung hình ([main.py:437](../../main.py#L437)).
+- Thời gian hiển thị sai dạng `01:75` (`endgame.py:812`).
+- Sprite fairy bị vẽ đè khi bật hint lúc qua màn (`main.py:540`).
+- Có thể văng `IndexError` ở đường hầm, dù rất hiếm (`pac.py:168`).
+- Game tạo lại font mỗi khung hình (`main.py:437`).
 - Game chỉ chạy được khi đứng đúng thư mục dự án, vì đường dẫn là tương đối.
 - Có 3 bản `load_settings` khác nhau, và bản trong `main.py` không gộp giá trị mặc định.
 - Nhiều `except:` trần nuốt mất lỗi.
@@ -127,7 +127,7 @@ Mỗi nhóm lỗi một commit, kèm test nếu kiểm tra tự động được
 ## Những thay đổi sẽ thấy khi chơi
 
 - **Ma nhanh hơn từ level 2**, đúng với cài đặt có sẵn trong code nhưng trước giờ chưa chạy. Game sẽ khó hơn.
-- **Bỏ phím SPACE**, vì phím này dịch chuyển fairy về hàng 24 ([main.py:241](../../main.py#L241)), có vẻ là code debug còn sót.
+- **Bỏ phím SPACE**, vì phím này dịch chuyển fairy về hàng 24 (`main.py:241`), có vẻ là code debug còn sót.
 - **Dòng cũ trong `history.json` không được sửa lại**, nên số liệu cũ vẫn sai; chỉ dòng mới là đúng.
 
 ## Giới hạn
