@@ -13,17 +13,31 @@ class BasePathFinder:
     def find_path_to_nearest_pellet(self, start_row, start_col):
         raise NotImplementedError
 
+    def wrap_step(self, row, col, dx, dy):
+        """Ô đích của một bước đi, có xử lý xuyên đường hầm. None nếu ra ngoài bản đồ."""
+        next_row = row + dy
+        next_col = col + dx
+        if dy == 0 and (next_col < 0 or next_col >= self.game.col):
+            if not self.game.level.is_tunnel_row(row):
+                return None
+            next_col = next_col % self.game.col
+        if 0 <= next_row < self.game.row and 0 <= next_col < self.game.col:
+            return next_row, next_col
+        return None
+
+    def step_between(self, row, col, target_row, target_col):
+        """Bước (dx, dy, dir) đưa từ một ô sang ô kề của nó. None nếu hai ô không kề nhau."""
+        for step in self.directions:
+            if self.wrap_step(row, col, step[0], step[1]) == (target_row, target_col):
+                return step
+        return None
+
     def _neighbors(self, row, col):
-        """Các ô kề nằm trong bản đồ, có xử lý đi xuyên đường hầm. Chưa kiểm tra tường."""
+        """Các ô kề nằm trong bản đồ. Chưa kiểm tra tường."""
         for dx, dy, _ in self.directions:
-            next_row = row + dy
-            next_col = col + dx
-            if dy == 0 and (next_col < 0 or next_col >= self.game.col):
-                if not self.game.level.is_tunnel_row(row):
-                    continue
-                next_col = next_col % self.game.col
-            if 0 <= next_row < self.game.row and 0 <= next_col < self.game.col:
-                yield next_row, next_col
+            next_pos = self.wrap_step(row, col, dx, dy)
+            if next_pos is not None:
+                yield next_pos
 
     def _is_blocked(self, r, c):
         return self.game.level.checktuong_for_pacman(r, c)

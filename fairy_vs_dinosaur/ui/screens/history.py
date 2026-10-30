@@ -1,10 +1,7 @@
-import json
-import os
-
 import pandas as pd
 import pygame
 
-from fairy_vs_dinosaur.config import HISTORY_FILE
+from fairy_vs_dinosaur.core.history_log import clear_history, load_history
 from fairy_vs_dinosaur.ui.screens.history_chart import render_comparison_chart
 from fairy_vs_dinosaur.ui.screens.history_table import draw_summary_table
 
@@ -18,8 +15,7 @@ class HistoryMenu:
         self.timer = pygame.time.Clock()
         self.fps = 60
 
-        self.history_file = HISTORY_FILE
-        self.data = self.load_history()
+        self.data = load_history()
         self.df = pd.DataFrame(self.data) if self.data else pd.DataFrame()
         self.chart_image = None
         if not self.df.empty:
@@ -103,26 +99,11 @@ class HistoryMenu:
         visible_height = self.screen.get_height() - 150  # Adjusted for fixed title
         self.max_scroll = max(0, self.content_height - visible_height)
 
-    def load_history(self):
-        """Load history data from JSON file"""
-        try:
-            if os.path.exists(self.history_file):
-                with open(self.history_file, 'r') as f:
-                    return json.load(f)
-            return []
-        except:
-            return []
-
     def clear_history(self):
-        """Clear all history data"""
         self.data = []
         self.df = pd.DataFrame()
         self.chart_image = None
-        try:
-            if os.path.exists(self.history_file):
-                os.remove(self.history_file)
-        except:
-            pass
+        clear_history()
         self.sound_manager.button_click_sound.play()
         self.calculate_content_height()
 
