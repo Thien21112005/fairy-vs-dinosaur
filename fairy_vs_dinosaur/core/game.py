@@ -4,6 +4,7 @@ from datetime import datetime
 
 import pygame
 
+from fairy_vs_dinosaur.config import asset, HISTORY_FILE, SETTINGS_FILE
 from fairy_vs_dinosaur.audio.sound_manager import SoundManager
 from fairy_vs_dinosaur.core.board import boards
 from fairy_vs_dinosaur.core.level import Level
@@ -42,7 +43,7 @@ class PacmanGame:
         # THÊM HÌNH NỀN
         try:
             # Load hình nền và scale về kích thước 600x600
-            self.background = pygame.image.load("assets/Photos/background.jpeg").convert()
+            self.background = pygame.image.load(asset("images/tiles/background.jpeg")).convert()
             self.background = pygame.transform.scale(self.background, (600, 600))
         except:
             print("Không thể load hình nền. Sử dụng nền đen.")
@@ -124,7 +125,7 @@ class PacmanGame:
         self.hint_restored = False  # Đánh dấu đã khôi phục hint chưa
 
         # Load settings
-        self.settings_file = "game_settings.json"
+        self.settings_file = SETTINGS_FILE
         self.load_settings()
 
         # Control scheme
@@ -149,7 +150,7 @@ class PacmanGame:
         self.score_images = {}
         for points in [200, 400, 800, 1600]:
             try:
-                img = pygame.image.load(f"assets/Score/{points}.png").convert_alpha()
+                img = pygame.image.load(asset(f"images/score/{points}.png")).convert_alpha()
                 self.score_images[points] = pygame.transform.smoothscale(img, (int(self.num2_c * 2.5),
                                                                                int(self.num1_r * 2.5)))  # Scale to hơn một chút (1.5 lần)
             except:
@@ -175,7 +176,7 @@ class PacmanGame:
             'calls': 0
         }
 
-        self.history_file = "history.json"
+        self.history_file = HISTORY_FILE
 
     def set_main_menu(self, main_menu):
         """Thiết lập reference tới main menu để có thể quay về"""

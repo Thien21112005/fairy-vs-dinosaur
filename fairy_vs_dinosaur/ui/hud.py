@@ -1,5 +1,6 @@
 import pygame
 
+from fairy_vs_dinosaur.config import asset
 from fairy_vs_dinosaur.i18n import get_translation
 from fairy_vs_dinosaur.ui.pause_menu import PauseMenu
 
@@ -8,7 +9,7 @@ class UI:
     def __init__(self, game):
         self.game = game
         self.font = pygame.font.SysFont('monospace', 20, bold=True)
-        lives_icon_raw = pygame.image.load("assets/Pac-man/blue/tile003.png").convert_alpha()
+        lives_icon_raw = pygame.image.load(asset("images/fairy/blue/tile003.png")).convert_alpha()
         self.lives_icon = pygame.transform.smoothscale(lives_icon_raw, (self.game.pac_w, self.game.pac_h))
         self.hint_hover = False  # Chỉ còn hint_hover
         self.ghost_hover = [False] * 4  # Hover cho 4 nút ghost: Blinky, Pinky, Inky, Clyde

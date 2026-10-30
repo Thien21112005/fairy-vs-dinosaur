@@ -1,5 +1,6 @@
 import pygame
 
+from fairy_vs_dinosaur.config import asset
 from fairy_vs_dinosaur.entities.ghost import Ghost
 
 
@@ -21,7 +22,7 @@ class Blinky(Ghost):
 
         # Load animation frames cho ghost elroy (chế độ Elroy)
         try:
-            self.elroy_frames = [pygame.image.load(f"assets/Ghost/{self.name}/dien/00{i}.png").convert_alpha() for i in range(0, 6)]
+            self.elroy_frames = [pygame.image.load(asset(f"images/dinosaurs/{self.name}/elroy/00{i}.png")).convert_alpha() for i in range(0, 6)]
             # Scale các frame elroy
             self.elroy_frames = [pygame.transform.smoothscale(img, (self.ghost_w, self.ghost_h)) for img in self.elroy_frames]
             self.elroy_frame_count = len(self.elroy_frames)

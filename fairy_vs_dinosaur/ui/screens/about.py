@@ -1,5 +1,6 @@
 import pygame
 
+from fairy_vs_dinosaur.config import asset
 from fairy_vs_dinosaur.i18n import get_translation
 
 
@@ -28,7 +29,7 @@ class AboutMenu:
         # Load images (assuming PNG files)
         self.images = []
         for i in range(1, 4):
-            img_path = f"assets/Mainmenu/{i}.png"
+            img_path = asset(f"images/menu/{i}.png")
             try:
                 img = pygame.image.load(img_path).convert_alpha()
                 img = pygame.transform.scale(img, (200, 200))  # Scale to fit

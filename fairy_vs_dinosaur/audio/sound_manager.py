@@ -1,27 +1,29 @@
 import pygame
 
+from fairy_vs_dinosaur.config import asset
+
 
 class SoundManager:
     def __init__(self):
         pygame.mixer.init()
         pygame.mixer.set_num_channels(16)
-        self.pellet_sound1 = pygame.mixer.Sound('assets/Sound/eat_pellet1.mp3')
-        self.pellet_sound2 = pygame.mixer.Sound('assets/Sound/eat_pellet2.mp3')
+        self.pellet_sound1 = pygame.mixer.Sound(asset('sounds/eat_pellet1.mp3'))
+        self.pellet_sound2 = pygame.mixer.Sound(asset('sounds/eat_pellet2.mp3'))
         self.pellet_toggle = 0
-        self.power_pellet_sound = pygame.mixer.Sound('assets/Sound/eat_power_pellet.mp3')
-        self.intro_sound = pygame.mixer.Sound('assets/Sound/play_game.mp3')
-        self.ghost_move_sound = pygame.mixer.Sound('assets/Sound/ghost_move.mp3')
-        self.ghost_eat_sound = pygame.mixer.Sound('assets/Sound/ghost_eat.mp3')
-        self.game_over_sound = pygame.mixer.Sound('assets/Sound/game_over1.mp3')  # Thêm sound game over
-        self.count_down = pygame.mixer.Sound('assets/Sound/count_down.mp3')
+        self.power_pellet_sound = pygame.mixer.Sound(asset('sounds/eat_power_pellet.mp3'))
+        self.intro_sound = pygame.mixer.Sound(asset('sounds/play_game.mp3'))
+        self.ghost_move_sound = pygame.mixer.Sound(asset('sounds/ghost_move.mp3'))
+        self.ghost_eat_sound = pygame.mixer.Sound(asset('sounds/ghost_eat.mp3'))
+        self.game_over_sound = pygame.mixer.Sound(asset('sounds/game_over1.mp3'))  # Thêm sound game over
+        self.count_down = pygame.mixer.Sound(asset('sounds/count_down.mp3'))
 
         # Thêm sound cho button
-        self.button_hover_sound = pygame.mixer.Sound('assets/Sound/button_hover.wav')  # Giả sử bạn có file này
-        self.button_click_sound = pygame.mixer.Sound('assets/Sound/button_click.mp3')  # Giả sử bạn có file này
+        self.button_hover_sound = pygame.mixer.Sound(asset('sounds/button_hover.wav'))  # Giả sử bạn có file này
+        self.button_click_sound = pygame.mixer.Sound(asset('sounds/button_click.mp3'))  # Giả sử bạn có file này
 
         # Thêm nhạc menu
-        self.menu_music = 'assets/Sound/mainmenu_music.mp3'  # Giả sử bạn có file này
-        self.magic_sound = pygame.mixer.Sound('assets/Sound/magic.wav')
+        self.menu_music = asset('sounds/mainmenu_music.mp3')  # Giả sử bạn có file này
+        self.magic_sound = pygame.mixer.Sound(asset('sounds/magic.wav'))
 
         # Thêm channel cho magic sound
         self.magic_channel = pygame.mixer.Channel(5)  # Sử dụng channel 5
@@ -32,20 +34,20 @@ class SoundManager:
         self.game_over_channel = pygame.mixer.Channel(4)  # Channel riêng cho game over
 
         # Thêm âm thanh turn_egg
-        self.turn_egg_sound = pygame.mixer.Sound('assets/Sound/turn_egg.mp3')
+        self.turn_egg_sound = pygame.mixer.Sound(asset('sounds/turn_egg.mp3'))
 
         # Thêm channel cho turn_egg sound
         self.turn_egg_channel = pygame.mixer.Channel(6)  # Sử dụng channel 6
 
-        self.egg_hatch_sound = pygame.mixer.Sound('assets/Sound/egg_hatch.mp3')
+        self.egg_hatch_sound = pygame.mixer.Sound(asset('sounds/egg_hatch.mp3'))
 
         # Thêm channel cho egg_hatch sound
         self.egg_hatch_channel = pygame.mixer.Channel(7)  # Sử dụng channel 7
 
         self.intro_channel = pygame.mixer.Channel(8)  # Sử dụng channel 8 cho intro
-        self.hold_sound = pygame.mixer.Sound('assets/Sound/hold.mp3')  # Giả sử file tồn tại
-        self.flick_sound = pygame.mixer.Sound('assets/Sound/flicker.mp3')  # Giả sử file tồn tại
-        self.throw_sound = pygame.mixer.Sound('assets/Sound/throw.mp3')  # Giả sử file tồn tại
+        self.hold_sound = pygame.mixer.Sound(asset('sounds/hold.mp3'))  # Giả sử file tồn tại
+        self.flick_sound = pygame.mixer.Sound(asset('sounds/flicker.mp3'))  # Giả sử file tồn tại
+        self.throw_sound = pygame.mixer.Sound(asset('sounds/throw.mp3'))  # Giả sử file tồn tại
 
         # Thêm channels cho các sound mới
         self.hold_channel = pygame.mixer.Channel(9)  # Channel cho hold

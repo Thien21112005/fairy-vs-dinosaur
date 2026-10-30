@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pygame
 
+from fairy_vs_dinosaur.config import HISTORY_FILE
+
 
 class HistoryMenu:
     def __init__(self, screen, sound_manager, background, back_callback):
@@ -17,7 +19,7 @@ class HistoryMenu:
         self.timer = pygame.time.Clock()
         self.fps = 60
 
-        self.history_file = "history.json"
+        self.history_file = HISTORY_FILE
         self.data = self.load_history()
         self.df = pd.DataFrame(self.data) if self.data else pd.DataFrame()
         self.chart_image = None

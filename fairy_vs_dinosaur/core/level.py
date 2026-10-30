@@ -1,5 +1,6 @@
 import pygame
 
+from fairy_vs_dinosaur.config import asset
 from fairy_vs_dinosaur.core.board import boards
 
 
@@ -8,7 +9,7 @@ class Level:
         self.game = game
         self.level = [row[:] for row in boards]
         self.tuong = {3, 4, 5, 6, 7, 8, 9}  # 9 là cổng ma
-        item_raw = [pygame.image.load(f"assets/Photos/{i}.png").convert_alpha() for i in range(1, 10)]
+        item_raw = [pygame.image.load(asset(f"images/tiles/{i}.png")).convert_alpha() for i in range(1, 10)]
         self.item = [pygame.transform.smoothscale(img, (self.game.num2_c, self.game.num1_r)) for img in item_raw]
         # TÍNH TOÁN TỔNG SỐ PELLETS BAN ĐẦU
         self.initial_pellets = sum(sum(1 for c in row if c in [1, 2]) for row in self.level)

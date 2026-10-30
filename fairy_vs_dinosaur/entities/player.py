@@ -2,6 +2,8 @@ import random
 
 import pygame
 
+from fairy_vs_dinosaur.config import asset
+
 
 class Player:
     def __init__(self, game):
@@ -14,8 +16,8 @@ class Player:
         self.requested_direction = -1
 
         # Load cả hai bộ asset: blue và red
-        self.p_raw_blue = [pygame.image.load(f"assets/Pac-man/blue/tile00{i}.png").convert_alpha() for i in range(0, 8)]
-        self.p_raw_red = [pygame.image.load(f"assets/Pac-man/red/tile00{i}.png").convert_alpha() for i in range(0, 8)]
+        self.p_raw_blue = [pygame.image.load(asset(f"images/fairy/blue/tile00{i}.png")).convert_alpha() for i in range(0, 8)]
+        self.p_raw_red = [pygame.image.load(asset(f"images/fairy/red/tile00{i}.png")).convert_alpha() for i in range(0, 8)]
 
         p_scale = 2
         pac_size = int(min(self.game.num2_c, self.game.num1_r) * p_scale)

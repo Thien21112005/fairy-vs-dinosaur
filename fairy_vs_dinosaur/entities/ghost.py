@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 
 import pygame
 
+from fairy_vs_dinosaur.config import asset
+
 
 class Ghost(ABC):
     def __init__(self, game, name, start_row, start_col, color):
@@ -26,17 +28,17 @@ class Ghost(ABC):
         self.set_speed_multipliers()
 
         # Load animation frames cho ghost bình thường
-        self.normal_frames = [pygame.image.load(f"assets/Ghost/{name}/thuong/tile00{i}.png").convert_alpha() for i in range(0, 6)]
+        self.normal_frames = [pygame.image.load(asset(f"images/dinosaurs/{name}/normal/tile00{i}.png")).convert_alpha() for i in range(0, 6)]
         # Scale các frame với kích thước mới
         self.normal_frames = [pygame.transform.smoothscale(img, (self.ghost_w, self.ghost_h)) for img in self.normal_frames]
 
         # Load animation frames cho ghost frightened
-        self.frightened_frames = [pygame.image.load(f"assets/Ghost/{name}/ghost/tile00{i}.png").convert_alpha() for i in range(0, 4)]
+        self.frightened_frames = [pygame.image.load(asset(f"images/dinosaurs/{name}/frightened/tile00{i}.png")).convert_alpha() for i in range(0, 4)]
         # Scale các frame frightened
         self.frightened_frames = [pygame.transform.smoothscale(img, (self.ghost_w, self.ghost_h)) for img in self.frightened_frames]
         # Load frame flash (white) - chung cho tất cả ghost
         try:
-            self.flash_frame = pygame.image.load("assets/Ghost/flash.png").convert_alpha()
+            self.flash_frame = pygame.image.load(asset("images/dinosaurs/flash.png")).convert_alpha()
             self.flash_frame = pygame.transform.smoothscale(self.flash_frame, (self.ghost_w, self.ghost_h))
             # Tạo animations cho flash theo hướng (chỉ 1 frame)
             self.flash_animations = {
@@ -76,7 +78,7 @@ class Ghost(ABC):
         self.just_teleported = False
 
         # Load animation frames cho ghost eat
-        self.eat_frames = [pygame.image.load(f"assets/Ghost/{name}/eat/tile00{i}.png").convert_alpha() for i in range(0, 3)]
+        self.eat_frames = [pygame.image.load(asset(f"images/dinosaurs/{name}/eat/tile00{i}.png")).convert_alpha() for i in range(0, 3)]
         # Scale các frame eat
         self.eat_frames = [pygame.transform.smoothscale(img, (self.ghost_w, self.ghost_h)) for img in self.eat_frames]
 
@@ -99,7 +101,7 @@ class Ghost(ABC):
         self.eaten_animation_duration = 800  # 0.8 giây cho animation bị ăn
 
         # Load animation frames cho ghost bị ăn (hurt)
-        self.hurt_frames = [pygame.image.load(f"assets/Ghost/{name}/hurt/00{i}.png").convert_alpha() for i in range(0, 4)]
+        self.hurt_frames = [pygame.image.load(asset(f"images/dinosaurs/{name}/hurt/00{i}.png")).convert_alpha() for i in range(0, 4)]
         # Scale các frame hurt
         self.hurt_frames = [pygame.transform.smoothscale(img, (self.ghost_w, self.ghost_h)) for img in self.hurt_frames]
 
@@ -120,7 +122,7 @@ class Ghost(ABC):
 
         # Load animation frames cho ghost turnegg
         try:
-            self.turnegg_frames = [pygame.image.load(f"assets/Ghost/{name}/turnegg/00{i}.png").convert_alpha() for i in
+            self.turnegg_frames = [pygame.image.load(asset(f"images/dinosaurs/{name}/turn_egg/00{i}.png")).convert_alpha() for i in
                                    range(0, 4)]
             # Scale các frame turnegg
             self.turnegg_frames = [pygame.transform.smoothscale(img, (self.ghost_w, self.ghost_h)) for img in
@@ -141,7 +143,7 @@ class Ghost(ABC):
 
         # Load animation frames cho hatchegg
         try:
-            self.hatchegg_frames = [pygame.image.load(f"assets/Ghost/{name}/hatchegg/00{i}.png").convert_alpha() for i
+            self.hatchegg_frames = [pygame.image.load(asset(f"images/dinosaurs/{name}/hatch_egg/00{i}.png")).convert_alpha() for i
                                     in range(0, 8)]
             # Scale các frame hatchegg
             self.hatchegg_frames = [pygame.transform.smoothscale(img, (self.ghost_w, self.ghost_h)) for img in
@@ -160,7 +162,7 @@ class Ghost(ABC):
 
         # Load animation frames cho ghost relax
         try:
-            self.relax_frames = [pygame.image.load(f"assets/Ghost/{name}/relax/tile00{i}.png").convert_alpha() for i in range(3)]
+            self.relax_frames = [pygame.image.load(asset(f"images/dinosaurs/{name}/relax/tile00{i}.png")).convert_alpha() for i in range(3)]
             # Scale các frame relax
             self.relax_frames = [pygame.transform.smoothscale(img, (self.ghost_w, self.ghost_h)) for img in self.relax_frames]
         except:

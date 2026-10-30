@@ -3,6 +3,7 @@ import os
 
 import pygame
 
+from fairy_vs_dinosaur.config import SETTINGS_FILE
 from fairy_vs_dinosaur.i18n import get_translation
 
 
@@ -15,7 +16,7 @@ class SettingsMenu:
         self.width, self.height = screen.get_size()
 
         # Load settings từ file
-        self.settings_file = "game_settings.json"
+        self.settings_file = SETTINGS_FILE
         self.load_settings()
 
         # Apply initial settings

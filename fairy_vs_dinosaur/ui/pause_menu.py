@@ -1,5 +1,6 @@
 import pygame
 
+from fairy_vs_dinosaur.config import asset
 from fairy_vs_dinosaur.i18n import get_translation
 
 
@@ -48,7 +49,7 @@ class PauseMenu:
 
         # Load hình nàng tiên cho thanh tiến độ
         try:
-            fairy_raw = pygame.image.load("assets/Pac-man/blue/tile003.png").convert_alpha()
+            fairy_raw = pygame.image.load(asset("images/fairy/blue/tile003.png")).convert_alpha()
             self.fairy_icon = pygame.transform.smoothscale(fairy_raw, (30, 30))
         except:
             print("Không thể load hình nàng tiên. Sử dụng hình tròn thay thế.")

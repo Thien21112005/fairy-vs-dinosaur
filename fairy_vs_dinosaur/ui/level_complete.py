@@ -1,5 +1,6 @@
 import pygame
 
+from fairy_vs_dinosaur.config import asset
 from fairy_vs_dinosaur.audio.sound_manager import SoundManager
 from fairy_vs_dinosaur.i18n import get_translation
 
@@ -13,11 +14,11 @@ class LevelCompleteAnimation:
 
         # Load animation images (chuyển từ PacmanGame)
         try:
-            self.gong_img = pygame.image.load("assets/End/gong.png").convert_alpha()
-            self.throw_img = pygame.image.load("assets/End/throw.png").convert_alpha()
+            self.gong_img = pygame.image.load(asset("images/level_complete/gong.png")).convert_alpha()
+            self.throw_img = pygame.image.load(asset("images/level_complete/throw.png")).convert_alpha()
             self.fireball_imgs = [
-                pygame.image.load("assets/End/fireball1.png").convert_alpha(),
-                pygame.image.load("assets/End/fireball2.png").convert_alpha()
+                pygame.image.load(asset("images/level_complete/fireball1.png")).convert_alpha(),
+                pygame.image.load(asset("images/level_complete/fireball2.png")).convert_alpha()
             ]
         except pygame.error as e:
             print(f"Không thể load animation images: {e}")
@@ -76,7 +77,7 @@ class LevelCompleteAnimation:
 
         # Load hình nàng tiên cho thanh tiến độ
         try:
-            fairy_raw = pygame.image.load("assets/Pac-man/blue/tile003.png").convert_alpha()
+            fairy_raw = pygame.image.load(asset("images/fairy/blue/tile003.png")).convert_alpha()
             self.fairy_icon = pygame.transform.smoothscale(fairy_raw, (30, 30))
         except:
             print("Không thể load hình nàng tiên. Sử dụng hình tròn thay thế.")

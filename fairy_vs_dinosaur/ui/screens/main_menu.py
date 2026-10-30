@@ -3,6 +3,7 @@ import os
 
 import pygame
 
+from fairy_vs_dinosaur.config import asset, SETTINGS_FILE
 from fairy_vs_dinosaur.audio.sound_manager import SoundManager
 from fairy_vs_dinosaur.core.game import PacmanGame
 from fairy_vs_dinosaur.i18n import get_translation
@@ -22,12 +23,12 @@ class MainMenu:
         # Thêm SoundManager
         self.sound_manager = SoundManager()
         # Load settings ngay từ đầu
-        self.settings_file = "game_settings.json"
+        self.settings_file = SETTINGS_FILE
         self.load_settings()
         self.apply_audio_settings()
 
         # Load background image với scaling
-        background_raw = pygame.image.load("assets/Mainmenu/background.png").convert()
+        background_raw = pygame.image.load(asset("images/menu/background.png")).convert()
         self.background = pygame.transform.scale(background_raw, (self.width, self.height))
 
         # Fonts - sử dụng font fantasy style

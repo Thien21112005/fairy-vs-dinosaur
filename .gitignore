@@ -11,8 +11,6 @@ venv/
 
 # Runtime data created by the game
 data/
-game_settings.json
-history.json
 
 # OS
 Thumbs.db
