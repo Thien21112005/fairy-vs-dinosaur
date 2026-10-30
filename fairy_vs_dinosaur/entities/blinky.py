@@ -27,6 +27,10 @@ class Blinky(Ghost):
             self.elroy1_multiplier = 1.1
             self.elroy2_multiplier = 1.15
 
+    def apply_level_difficulty(self):
+        super().apply_level_difficulty()
+        self.set_elroy_thresholds()
+
     def set_elroy_thresholds(self):
         level = self.game.level_num
         for max_level, threshold in [(1, 20), (2, 30), (5, 40), (8, 50), (11, 60), (14, 80), (18, 100)]:

@@ -81,6 +81,7 @@ class LevelCompleteAnimation:
             handler(dt)
 
         if self.state == 'done':
+            self.game.level_menu.open()
             self.game.show_level_complete = True
             self.active = False
             self.state = 'none'
@@ -201,8 +202,8 @@ class LevelCompleteMenu(OverlayMenu):
 
     def _draw_extra_info(self, screen):
         y_pos = self.y + 160
-        seconds = int(self.game.play_time // 1000)
-        minutes = int(seconds // 60)
+        minutes = int(self.game.play_time // 60000)
+        seconds = int((self.game.play_time // 1000) % 60)
         milliseconds = int(self.game.play_time % 1000)
         self._draw_info_line(screen, f"Score: {self.game.score}", y_pos)
         self._draw_info_line(screen, f"Time: {minutes:02d}:{seconds:02d}.{milliseconds:03d}", y_pos + 25)
@@ -213,6 +214,12 @@ class LevelCompleteMenu(OverlayMenu):
         rect = surface.get_rect(center=(self.game.width // 2, y))
         screen.blit(shadow, shadow.get_rect(center=(rect.centerx + 1, rect.centery + 1)))
         screen.blit(surface, rect)
+
+    def open(self):
+        """Chuẩn bị hiển thị: nền mờ phải chụp lại từ màn chơi hiện tại"""
+        self.background_surface = None
+        self.selected_index = 0
+        self.show_confirm = False
 
     def draw(self, screen):
         if self.game.show_level_complete:

@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import pygame
 
 from fairy_vs_dinosaur.config import asset
-from fairy_vs_dinosaur.entities.ghost_movement import GhostMovementMixin
+from fairy_vs_dinosaur.entities.ghost_movement import GhostMovementMixin, OPPOSITE
 from fairy_vs_dinosaur.entities.ghost_render import GhostRenderMixin
 
 
@@ -98,6 +98,28 @@ class Ghost(GhostMovementMixin, GhostRenderMixin, ABC):
             self.normal_speed_multiplier = 0.95
             self.frightened_speed_multiplier = 0.9
 
+    def reset_to_start(self):
+        """Đưa ghost về vị trí xuất phát và xóa mọi trạng thái đặc biệt"""
+        self.row = self.start_row
+        self.col = self.start_col
+        self.x = self.col * self.game.num2_c + self.game.num2_c / 2.0
+        self.y = self.row * self.game.num1_r + self.game.num1_r / 2.0
+        self.direction = 0
+        self.path = []
+        self.eating = False
+        self.eat_animation_time = 0
+        self.eaten = False
+        self.just_eaten = False
+        self.returning_home = False
+        self.reached_home = False
+        self.hatching = False
+        self.frightened_disabled = False
+        self.tunnel_slowdown_timer = 0.0
+        self.release_timer = self.release_delay
+
+    def apply_level_difficulty(self):
+        self.set_speed_multipliers()
+
     def start_hatching(self):
         self.hatching = True
         self.hatch_animation_time = 0
@@ -123,7 +145,7 @@ class Ghost(GhostMovementMixin, GhostRenderMixin, ABC):
         self.eat_animation_time = 0
 
     def reverse_direction(self):
-        self.direction = (self.direction + 2) % 4
+        self.direction = OPPOSITE[self.direction]
 
     def is_elroy(self):
         return False

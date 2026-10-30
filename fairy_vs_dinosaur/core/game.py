@@ -213,19 +213,7 @@ class PacmanGame(GameInputMixin, GameRenderMixin, GameStatesMixin):
 
     def reset_after_death(self):
         for ghost in self.ghosts:
-            ghost.frightened_disabled = False
-            ghost.row = ghost.start_row
-            ghost.col = ghost.start_col
-            ghost.x = ghost.col * self.num2_c + self.num2_c / 2.0
-            ghost.y = ghost.row * self.num1_r + self.num1_r / 2.0
-            ghost.direction = 0
-            ghost.eating = False
-            ghost.eat_animation_time = 0
-            ghost.path = []
-            ghost.just_eaten = False
-            ghost.returning_home = False
-            ghost.reached_home = False
-            ghost.release_timer = ghost.release_delay
+            ghost.reset_to_start()
 
         self.player.place_at_start()
         self.player.dead = False
@@ -246,20 +234,10 @@ class PacmanGame(GameInputMixin, GameRenderMixin, GameStatesMixin):
 
     def reset_for_next_level(self):
         self.level.load_board(boards)
+        self.mode_manager.reset()
         for ghost in self.ghosts:
-            ghost.row = ghost.start_row
-            ghost.col = ghost.start_col
-            ghost.x = ghost.col * self.num2_c + self.num2_c / 2.0
-            ghost.y = ghost.row * self.num1_r + self.num1_r / 2.0
-            ghost.direction = 0
-            ghost.path = []
-            ghost.eaten = False
-            ghost.eating = False
-            ghost.returning_home = False
-            ghost.just_eaten = False
-            ghost.reached_home = False
-            ghost.release_timer = ghost.release_delay
-            ghost.frightened_disabled = False
+            ghost.reset_to_start()
+            ghost.apply_level_difficulty()
 
         self.player.reset()
         self.eaten_ghosts_count = 0

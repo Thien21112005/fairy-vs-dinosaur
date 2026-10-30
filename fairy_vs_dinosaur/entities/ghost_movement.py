@@ -2,6 +2,8 @@ import random
 
 # Hướng rẽ theo hướng hiện tại: direction -> (rẽ trái, rẽ phải)
 TURNS = {0: (2, 3), 1: (3, 2), 2: (1, 0), 3: (0, 1)}
+# Hướng ngược lại: 0 phải <-> 1 trái, 2 lên <-> 3 xuống
+OPPOSITE = {0: 1, 1: 0, 2: 3, 3: 2}
 
 
 class GhostMovementMixin:
@@ -183,9 +185,8 @@ class GhostMovementMixin:
         return directions
 
     def _choose_frightened_direction(self):
-        reverse_dir = (self.direction + 2) % 4
-        valid_dirs = self._open_directions()
-        preferred_dirs = [d for d in valid_dirs if d != reverse_dir]
+        reverse_dir = OPPOSITE[self.direction]
+        preferred_dirs = [d for d in self._open_directions() if d != reverse_dir]
 
         # Ưu tiên rẽ trái, rẽ phải, đi thẳng; không còn cách nào mới quay đầu
         left_turn, right_turn = TURNS[self.direction]
@@ -193,7 +194,7 @@ class GhostMovementMixin:
             if candidate in preferred_dirs:
                 self.direction = candidate
                 return
-        self.direction = random.choice(preferred_dirs) if preferred_dirs else reverse_dir
+        self.direction = reverse_dir
 
     def _face_next_path_cell(self):
         """Quay về phía ô kế tiếp trên path. Trả về False nếu không có ô kế tiếp."""
@@ -215,7 +216,6 @@ class GhostMovementMixin:
 
         if not self._face_next_path_cell():
             # Không tìm được đường: đi ngẫu nhiên nhưng không quay đầu
-            reverse_dir = (self.direction + 2) % 4
-            valid_dirs = [d for d in self._open_directions() if d != reverse_dir]
+            valid_dirs = [d for d in self._open_directions() if d != OPPOSITE[self.direction]]
             if valid_dirs:
                 self.direction = random.choice(valid_dirs)

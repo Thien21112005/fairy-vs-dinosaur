@@ -9,6 +9,12 @@ class ModeManager:
         self.frightened_timer = 0.0
         self.frightened_duration = 6.0
 
+    def reset(self):
+        self.current_phase = 0
+        self.phase_timer = 0.0
+        self.frightened_active = False
+        self.frightened_timer = 0.0
+
     def update(self, delta_time):
         if self.game.game_started and not self.frightened_active:
             self.phase_timer += delta_time
