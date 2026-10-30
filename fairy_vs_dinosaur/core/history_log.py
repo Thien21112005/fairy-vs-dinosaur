@@ -7,11 +7,10 @@ from fairy_vs_dinosaur.config import HISTORY_FILE
 
 def new_metrics():
     return {
-        'execution_time': 0.0,
-        'expanded_nodes': 0,
-        'path_lengths': [],
-        'memory_usage': 0,
-        'success': 0,
+        'execution_time': 0.0,  # Tổng thời gian tìm đường (giây)
+        'expanded_nodes': 0,  # Tổng số nút đã mở rộng
+        'path_length': 0,  # Số ô nhân vật thực sự đã đi
+        'memory_usage': 0,  # Ước lượng cao nhất (KB)
         'calls': 0
     }
 
@@ -33,7 +32,7 @@ def append_history(algorithm, level, metrics, success, play_time_ms, score):
         'level': level,
         'execution_time': metrics['execution_time'],
         'expanded_nodes': metrics['expanded_nodes'],
-        'path_length': len(metrics['path_lengths']) if metrics['path_lengths'] else 0,
+        'path_length': metrics['path_length'],
         'memory_usage': metrics['memory_usage'],
         'success_rate': 100 if success else 0,
         'total_time': play_time_ms / 1000.0,

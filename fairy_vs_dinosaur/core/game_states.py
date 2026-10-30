@@ -133,8 +133,8 @@ class GameStatesMixin:
                 ghost.update(dt)
             self.check_ghost_collisions()
             if self.level.remaining_pellets <= 0 and not self.dying and not self.game_over:
+                self.record_game_history(success=True)  # Trước khi animation tăng số màn
                 self.level_anim.start()
-                self.record_game_history(success=True)
                 return
 
         if self.score > self.high_score:

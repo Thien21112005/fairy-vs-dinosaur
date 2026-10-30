@@ -160,8 +160,11 @@ class Player:
         else:
             self.x = int(self.x // num_c) * num_c + num_c / 2.0
 
+        old_cell = (self.row, self.col)
         self.col = int(self.x // num_c)
         self.row = int(self.y // num_r)
+        if self.game.ai_mode and (self.row, self.col) != old_cell:
+            self.game.metrics['path_length'] += 1
         self.moved = abs(self.x - old_x) > 0.001 or abs(self.y - old_y) > 0.001
 
     def _collect_pellet(self):

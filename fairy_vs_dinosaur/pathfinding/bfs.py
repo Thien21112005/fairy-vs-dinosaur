@@ -8,9 +8,7 @@ class BFSPathFinder(BasePathFinder):
     BASE_MEMORY_KB = 100
 
     def find_full_path(self, start_row, start_col, target_row, target_col, ghost=None):
-        """Đường ngắn nhất tới một ô cụ thể. Ghost dùng hàm này để đuổi, tản ra và về nhà."""
-        start_time = time.time()
-
+        """Đường ngắn nhất tới một ô cụ thể. Ghost dùng hàm này nên không tính vào metrics của người chơi."""
         start = (start_row, start_col)
         target = (target_row, target_col)
         if start == target:
@@ -18,7 +16,6 @@ class BFSPathFinder(BasePathFinder):
 
         queue = deque([(start, [start])])
         visited = {start}
-        expanded_nodes = 0
 
         if ghost:
             is_blocked = lambda r, c: self.game.level.checktuong_for_ghost(r, c, ghost)
@@ -27,17 +24,16 @@ class BFSPathFinder(BasePathFinder):
 
         while queue:
             current, path = queue.popleft()
-            expanded_nodes += 1
 
             if current == target:
-                return self._finish(start_time, expanded_nodes, path, len(visited))
+                return path
 
             for next_pos in self._neighbors(*current):
                 if not is_blocked(*next_pos) and next_pos not in visited:
                     visited.add(next_pos)
                     queue.append((next_pos, path + [next_pos]))
 
-        return self._finish(start_time, expanded_nodes, [], len(visited))
+        return []
 
     def find_path_to_nearest_pellet(self, start_row, start_col):
         start_time = time.time()

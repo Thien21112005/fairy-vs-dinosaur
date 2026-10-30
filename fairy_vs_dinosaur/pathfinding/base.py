@@ -92,18 +92,16 @@ class BasePathFinder:
 
     def _finish(self, start_time, expanded_nodes, path, visited_count, *extra_memory_kb):
         """Ghi metrics cho một lần tìm đường rồi trả về path (rỗng nếu thất bại)."""
-        execution_time = (time.time() - start_time) * 1000  # ms
+        execution_time = time.time() - start_time
         memory_usage = self.BASE_MEMORY_KB + visited_count * 0.05 + len(path) * 0.03
         for kb in extra_memory_kb:
             memory_usage += kb
-        self._update_metrics(execution_time, expanded_nodes, len(path), memory_usage, bool(path))
+        self._update_metrics(execution_time, expanded_nodes, memory_usage)
         return path
 
-    def _update_metrics(self, execution_time, expanded_nodes, path_length, memory_usage, success):
-        """Cập nhật metrics vào game"""
-        self.game.metrics['execution_time'] = execution_time
-        self.game.metrics['expanded_nodes'] = expanded_nodes
-        self.game.metrics['path_lengths'].append(path_length)
+    def _update_metrics(self, execution_time, expanded_nodes, memory_usage):
+        """Cộng dồn metrics của cả ván để so sánh các thuật toán"""
+        self.game.metrics['execution_time'] += execution_time
+        self.game.metrics['expanded_nodes'] += expanded_nodes
         self.game.metrics['memory_usage'] = max(self.game.metrics['memory_usage'], memory_usage)
-        self.game.metrics['success'] = 1 if success else 0
         self.game.metrics['calls'] += 1
