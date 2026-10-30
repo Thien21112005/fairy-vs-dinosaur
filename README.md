@@ -1,6 +1,6 @@
 # Fairy vs Dinosaur
 
-A maze arcade game built with Python and Pygame, where seven search algorithms can play the game and be compared side by side.
+A maze arcade game built with Python and Pygame, where nine AI algorithms can play the game and be compared side by side.
 
 [English](#english) | [Tiếng Việt](#tiếng-việt)
 
@@ -20,8 +20,8 @@ The project was created at Ho Chi Minh City University of Technology and Educati
 
 ### Features
 
-- Seven pathfinding algorithms the fairy can use: BFS, DFS, UCS, A*, Greedy, Beam Search and Hill Climbing
-- Four dinosaurs with distinct chase and patrol behaviour, including scatter, chase and frightened modes
+- Nine algorithms the fairy can use: BFS, DFS, UCS, A*, Greedy, Beam Search, Hill Climbing, Expectimax and MCTS
+- Four dinosaurs that coordinate to cut off escape routes, with scatter, chase and frightened modes
 - Path hints that visualize what the fairy and each dinosaur are planning
 - Performance history with comparison charts for every algorithm
 - English, Vietnamese, French and Spanish interface
@@ -55,22 +55,48 @@ Choosing an algorithm and pressing a movement key are mutually exclusive: the fi
 
 ### Algorithms
 
-| Algorithm | Strategy when choosing the next pellet |
-|---|---|
-| BFS | Fewest steps to the closest pellet |
-| DFS | First pellet found going deep; it finishes the level but takes far longer than the others |
-| UCS | Lowest total cost, where cells near a dinosaur cost more |
-| A* | Lowest cost, guided by the distance to the nearest pellet |
-| Greedy | Whatever looks closest to a pellet, avoiding cells next to a dinosaur |
-| Beam Search | Like A*, but keeps only the 5 best candidates at each depth |
-| Hill Climbing | Randomly moves to neighbours that get closer, and commits to the route it finds |
+The fairy asks the chosen algorithm where to go each time it reaches a new cell, except DFS and Hill Climbing, which walk their whole route first.
 
-The History screen reports these values per game:
+**Search algorithms** look for a route to a pellet.
+
+| Algorithm | How it chooses | Avoids dinosaurs |
+|---|---|---|
+| BFS | Fewest steps to the closest pellet | Only the cell a dinosaur stands on |
+| DFS | First pellet found going deep. It clears the level but takes far longer than the others | Only the cell a dinosaur stands on |
+| UCS | Lowest total cost. Pellets are cheap, empty cells cost more and cells near a dinosaur cost much more | By cost |
+| A* | Same result as UCS, using a distance estimate to explore fewer cells | By cost |
+| Greedy | Whatever looks closest to a pellet, ignoring the cost so far | Refuses cells within 2 steps |
+| Beam Search | Like A*, but keeps only the 5 best candidates at each depth | Refuses cells within 2 steps |
+| Hill Climbing | Moves at random towards neighbours that get closer to a pellet | Refuses cells within 2 steps |
+
+**Look-ahead algorithms** simulate what the dinosaurs may do next, using real walking distances. They also hunt dinosaurs during power mode.
+
+| Algorithm | How it chooses |
+|---|---|
+| Expectimax | Alternates the fairy's best move with the likely moves of the 2 nearest dinosaurs, and searches deeper until it reaches a fixed work limit |
+| MCTS | Plays 90 short simulated games from the current position, focuses on the moves that do well, and picks the one tried most |
+
+Expectimax is the strongest overall at level 1. MCTS is limited by how few simulations fit in a frame, so it is weaker than Expectimax. From level 5 the dinosaurs usually beat every algorithm.
+
+### Dinosaurs
+
+Each dinosaur alternates between patrolling its own corner and chasing. During chase, they split up the fairy's escape routes:
+
+| Dinosaur | Role during chase |
+|---|---|
+| Blinky | Chases the fairy directly, and speeds up when few pellets remain |
+| Pinky | Heads for the junction ahead of the fairy |
+| Inky | Heads for the nearest remaining junction |
+| Clyde | Covers a remaining junction when far away, and retreats to its patrol when within 8 cells |
+
+Any dinosaur within 3 cells goes straight for the fairy. All of them get faster as levels increase. A defeated dinosaur returns home as an egg and hatches; it cannot be defeated again until the next power pellet.
+
+### History screen
 
 | Value | Meaning |
 |---|---|
 | Time | Total time spent searching, in seconds |
-| Nodes | Total nodes expanded |
+| Nodes | Total nodes expanded, or positions simulated for the look-ahead algorithms |
 | Path | Cells the fairy actually walked |
 | Memory | Peak memory use, estimated from the size of the search structures |
 | Success | Share of games that cleared the level |
@@ -87,9 +113,9 @@ fairy_vs_dinosaur/
     settings_store.py    Reads and writes settings
     audio/               Sound effects and music
     core/                Game loop, input, rendering, level and history
-    entities/            Fairy and dinosaurs
+    entities/            Fairy, dinosaurs and their coordination
     i18n/                Translations
-    pathfinding/         The seven algorithms and their shared base class
+    pathfinding/         The nine algorithms, their shared base class and the simulation model
     ui/                  HUD, overlay menus and full-screen menus
 ```
 
@@ -127,8 +153,8 @@ Dự án được thực hiện tại Trường Đại học Sư phạm Kỹ thu
 
 ### Tính năng
 
-- Bảy thuật toán tìm đường cho nàng tiên: BFS, DFS, UCS, A*, Greedy, Beam Search và Hill Climbing
-- Bốn con khủng long với cách đuổi và tuần tra riêng, gồm các chế độ tản ra, truy đuổi và hoảng sợ
+- Chín thuật toán cho nàng tiên: BFS, DFS, UCS, A*, Greedy, Beam Search, Hill Climbing, Expectimax và MCTS
+- Bốn con khủng long phối hợp chặn lối thoát, với các chế độ tản ra, truy đuổi và hoảng sợ
 - Gợi ý đường đi, hiển thị kế hoạch của nàng tiên và từng con khủng long
 - Lịch sử hiệu năng với biểu đồ so sánh các thuật toán
 - Giao diện tiếng Anh, tiếng Việt, tiếng Pháp và tiếng Tây Ban Nha
@@ -162,22 +188,48 @@ Chọn thuật toán và bấm phím di chuyển loại trừ nhau: thao tác n�
 
 ### Các thuật toán
 
-| Thuật toán | Cách chọn hạt tiếp theo |
-|---|---|
-| BFS | Ít bước nhất tới hạt gần nhất |
-| DFS | Hạt đầu tiên gặp khi đi theo chiều sâu; vẫn hoàn thành màn nhưng lâu hơn hẳn các thuật toán khác |
-| UCS | Tổng chi phí thấp nhất, ô gần khủng long có chi phí cao hơn |
-| A* | Chi phí thấp nhất, có định hướng theo khoảng cách tới hạt gần nhất |
-| Greedy | Ô có vẻ gần hạt nhất, tránh các ô sát khủng long |
-| Beam Search | Giống A* nhưng chỉ giữ 5 ứng viên tốt nhất ở mỗi độ sâu |
-| Hill Climbing | Đi ngẫu nhiên tới ô kề gần hạt hơn và theo hết đường đã tìm được |
+Mỗi khi tới một ô mới, nàng tiên hỏi thuật toán đang chọn nên đi đâu. Riêng DFS và Hill Climbing đi hết đường đã tìm rồi mới tìm tiếp.
 
-Màn hình History báo cáo các giá trị sau cho mỗi ván:
+**Nhóm tìm đường** tìm lối tới một hạt.
+
+| Thuật toán | Cách chọn | Né khủng long |
+|---|---|---|
+| BFS | Ít bước nhất tới hạt gần nhất | Chỉ tránh đúng ô khủng long đang đứng |
+| DFS | Hạt đầu tiên gặp khi đi theo chiều sâu. Vẫn hoàn thành màn nhưng lâu hơn hẳn các thuật toán khác | Chỉ tránh đúng ô khủng long đang đứng |
+| UCS | Tổng chi phí thấp nhất. Hạt có chi phí thấp, ô trống cao hơn, ô gần khủng long cao hơn nhiều | Qua chi phí |
+| A* | Cùng kết quả với UCS, dùng ước lượng khoảng cách để duyệt ít ô hơn | Qua chi phí |
+| Greedy | Ô có vẻ gần hạt nhất, không tính chi phí đã đi | Không đi vào ô cách khủng long từ 2 bước trở xuống |
+| Beam Search | Giống A* nhưng chỉ giữ 5 ứng viên tốt nhất ở mỗi độ sâu | Không đi vào ô cách khủng long từ 2 bước trở xuống |
+| Hill Climbing | Đi ngẫu nhiên tới ô kề gần hạt hơn | Không đi vào ô cách khủng long từ 2 bước trở xuống |
+
+**Nhóm nhìn trước** giả lập các nước khủng long có thể đi, dùng khoảng cách đường đi thật. Hai thuật toán này còn chủ động săn khủng long khi có năng lượng.
+
+| Thuật toán | Cách chọn |
+|---|---|
+| Expectimax | Xen kẽ nước tốt nhất của nàng tiên với các nước có khả năng của 2 con khủng long gần nhất, đào sâu dần tới giới hạn công việc cố định |
+| MCTS | Chơi 90 ván giả lập ngắn từ vị trí hiện tại, tập trung vào các nước cho kết quả tốt và chọn nước được thử nhiều nhất |
+
+Expectimax mạnh nhất ở level 1. MCTS bị giới hạn vì mỗi khung hình chỉ đủ thời gian cho ít ván giả lập nên yếu hơn Expectimax. Từ level 5, khủng long thường thắng mọi thuật toán.
+
+### Khủng long
+
+Mỗi con luân phiên giữa tuần tra góc riêng và truy đuổi. Khi truy đuổi, chúng chia nhau các lối thoát của nàng tiên:
+
+| Khủng long | Vai trò khi truy đuổi |
+|---|---|
+| Blinky | Đuổi thẳng, và tăng tốc khi còn ít hạt |
+| Pinky | Tới ngã rẽ phía trước nàng tiên |
+| Inky | Tới ngã rẽ gần nó nhất trong số còn lại |
+| Clyde | Lấp ngã rẽ còn trống khi ở xa, và lùi về vòng tuần tra khi cách dưới 8 ô |
+
+Con nào cách nàng tiên từ 3 ô trở xuống sẽ lao thẳng vào. Tất cả nhanh dần theo level. Khủng long bị hạ sẽ về nhà dưới dạng trứng rồi nở lại, và không thể bị hạ tiếp cho tới hạt năng lượng kế tiếp.
+
+### Màn hình History
 
 | Giá trị | Ý nghĩa |
 |---|---|
 | Time | Tổng thời gian tìm đường, tính bằng giây |
-| Nodes | Tổng số nút đã mở rộng |
+| Nodes | Tổng số nút đã mở rộng, hoặc số vị trí đã giả lập với nhóm nhìn trước |
 | Path | Số ô nàng tiên thực sự đã đi |
 | Memory | Bộ nhớ cao nhất, ước lượng theo kích thước các cấu trúc tìm kiếm |
 | Success | Tỷ lệ ván hoàn thành màn chơi |
@@ -194,9 +246,9 @@ fairy_vs_dinosaur/
     settings_store.py    Đọc và ghi settings
     audio/               Hiệu ứng âm thanh và nhạc nền
     core/                Vòng lặp game, xử lý nhập, vẽ, màn chơi và lịch sử
-    entities/            Nàng tiên và khủng long
+    entities/            Nàng tiên, khủng long và cách chúng phối hợp
     i18n/                Bản dịch
-    pathfinding/         Bảy thuật toán và lớp cơ sở dùng chung
+    pathfinding/         Chín thuật toán, lớp cơ sở dùng chung và mô hình giả lập
     ui/                  HUD, menu nổi và các màn hình menu
 ```
 
