@@ -62,7 +62,7 @@ The fairy asks the chosen algorithm where to go each time it reaches a new cell,
 | Algorithm | How it chooses | Avoids dinosaurs |
 |---|---|---|
 | BFS | Fewest steps to the closest pellet | Only the cell a dinosaur stands on |
-| DFS | First pellet found going deep. It clears the level but takes far longer than the others | Only the cell a dinosaur stands on |
+| DFS | First pellet found going deep. It wanders on long routes and rarely survives the dinosaurs | Only the cell a dinosaur stands on |
 | UCS | Lowest total cost. Pellets are cheap, empty cells cost more and cells near a dinosaur cost much more | By cost |
 | A* | Same result as UCS, using a distance estimate to explore fewer cells | By cost |
 | Greedy | Whatever looks closest to a pellet, ignoring the cost so far | Refuses cells within 2 steps |
@@ -195,7 +195,7 @@ Mỗi khi tới một ô mới, nàng tiên hỏi thuật toán đang chọn nê
 | Thuật toán | Cách chọn | Né khủng long |
 |---|---|---|
 | BFS | Ít bước nhất tới hạt gần nhất | Chỉ tránh đúng ô khủng long đang đứng |
-| DFS | Hạt đầu tiên gặp khi đi theo chiều sâu. Vẫn hoàn thành màn nhưng lâu hơn hẳn các thuật toán khác | Chỉ tránh đúng ô khủng long đang đứng |
+| DFS | Hạt đầu tiên gặp khi đi theo chiều sâu. Đi vòng rất xa nên hiếm khi sống sót trước khủng long | Chỉ tránh đúng ô khủng long đang đứng |
 | UCS | Tổng chi phí thấp nhất. Hạt có chi phí thấp, ô trống cao hơn, ô gần khủng long cao hơn nhiều | Qua chi phí |
 | A* | Cùng kết quả với UCS, dùng ước lượng khoảng cách để duyệt ít ô hơn | Qua chi phí |
 | Greedy | Ô có vẻ gần hạt nhất, không tính chi phí đã đi | Không đi vào ô cách khủng long từ 2 bước trở xuống |
