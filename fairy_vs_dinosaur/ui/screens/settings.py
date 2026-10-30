@@ -331,7 +331,9 @@ class SettingsMenu:
         result = None
         original_settings = self.settings.copy()
 
+        clock = pygame.time.Clock()
         while running:
+            clock.tick(60)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False

@@ -3,7 +3,6 @@ import pygame
 from fairy_vs_dinosaur.config import asset
 from fairy_vs_dinosaur.i18n import get_translation
 from fairy_vs_dinosaur.ui.game_over import GameOverScreen
-from fairy_vs_dinosaur.ui.pause_menu import PauseMenu
 from fairy_vs_dinosaur.ui.widgets import draw_gradient_rect, draw_soft_rect, get_font
 
 SOLVE_OPTIONS = ["BFS", "DFS", "UCS", "ASTAR", "GREEDY", "HILL CLIMBING", "BEAM"]
@@ -23,7 +22,6 @@ class UI:
         self.show_clyde = True
 
         self.game_over = GameOverScreen(game)
-        self.pause_menu = PauseMenu(game)
         self.ghost_colors = [
             (255, 0, 0),  # Blinky
             (255, 184, 255),  # Pinky
@@ -78,7 +76,7 @@ class UI:
         screen.blit(self.font.render(f"{minutes:02d}:{seconds:02d}.{milliseconds:03d}", True, white),
                     (3 * self.game.width // 4 - 50, 30))
 
-        self.pause_menu.draw_pause_button(screen)
+        self.game.pause_menu.draw_pause_button(screen)
 
     def draw_ready(self):
         if self.game.show_ready:
@@ -218,5 +216,3 @@ class UI:
             for i in range(len(self.solve_options)):
                 if self.solve_option_hover[i] and not prev_option_hover[i]:
                     hover_sound.play()
-
-        self.pause_menu.update_hover(mouse_pos)

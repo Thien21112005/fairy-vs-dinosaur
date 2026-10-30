@@ -152,10 +152,6 @@ class PacmanGame(GameInputMixin, GameRenderMixin, GameStatesMixin):
         self.player.clear_path()
         self.__init__()
 
-    def return_to_main_menu(self):
-        self.return_code = 'menu'
-        self.running = False
-
     def run(self):
         self.running = True
         self.fade_in()

@@ -76,9 +76,6 @@ class SoundManager:
     def play_intro(self):
         self.intro_channel.play(self.intro_sound)
 
-    def stop_intro(self):
-        self.intro_channel.stop()
-
     def pause_intro(self):
         self.intro_channel.pause()
 
@@ -154,16 +151,6 @@ class SoundManager:
 
     def play_count_down(self):
         self.count_down.play()
-
-    def is_intro_playing(self):
-        """Kiểm tra xem intro có đang phát không"""
-        return self.intro_channel.get_busy()
-
-    def is_intro_paused(self):
-        """Kiểm tra xem intro có đang bị tạm dừng không"""
-        # Pygame không có phương thức trực tiếp để kiểm tra pause
-        # Nhưng chúng ta có thể kiểm tra xem channel có busy nhưng không có sound nào đang phát
-        return self.intro_channel.get_busy() and not self.intro_channel.get_sound()
 
     def pause_turn_egg(self):
         """Tạm dừng âm thanh turn_egg"""

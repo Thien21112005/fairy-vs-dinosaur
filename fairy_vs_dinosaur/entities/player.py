@@ -25,7 +25,6 @@ class Player:
         self.moved = False
         self.dead = False
         self.death_frame = None
-        self.visible = True
         self.ai_path = []
         self.place_at_start()
 
@@ -226,7 +225,6 @@ class Player:
 
     def reset(self):
         """Đưa player về trạng thái ban đầu của màn chơi"""
-        self.visible = True
         self.place_at_start()
         self.time = 0.0
         self.moved = False

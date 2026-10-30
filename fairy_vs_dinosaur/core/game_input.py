@@ -40,12 +40,6 @@ class GameInputMixin:
             self.solve_locked = True
             self.ui.solve_menu_visible = False
 
-        if key == pygame.K_SPACE:
-            self.player.col = 15 if self.player.col == 14 else 14
-            self.player.row = 24
-            self.player.x = self.player.col * self.num2_c + self.num2_c / 2.0
-            self.player.y = self.player.row * self.num1_r + self.num1_r / 2.0
-
     def _handle_hud_click(self, mouse_pos):
         ui = self.ui
         if ui.hint_rect.collidepoint(mouse_pos):

@@ -38,9 +38,7 @@ class ModeManager:
             self.frightened_timer = self.frightened_duration
             self.game.sound_manager.play_power(loops=-1)
             self.game.blinky.reverse_direction()
-            print(f"Frightened mode activated: {self.frightened_duration}s")
         else:
             # Cộng dồn thời gian, tối đa 3 lần thời lượng
             self.frightened_timer = min(self.frightened_timer + self.frightened_duration,
                                         self.frightened_duration * 3)
-            print(f"Frightened mode extended: {self.frightened_timer:.1f}s total")

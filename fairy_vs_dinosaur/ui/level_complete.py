@@ -50,7 +50,6 @@ class LevelCompleteAnimation:
         self.active = True
         self.state = 'gong'
         self.timer = 0
-        self.game.player.visible = False
         self.game.game_started = False
         self.game.sound_manager.stop_all_sounds()
 
@@ -71,7 +70,6 @@ class LevelCompleteAnimation:
         self.game.level_num += 1
 
     def update(self, dt):
-        print("LevelCompleteAnimation state:", self.state)
         if not self.active:
             return
 
@@ -148,7 +146,6 @@ class LevelCompleteAnimation:
             self.fireball_scale = 5.0 * scale_ratio + 3 * (1 - scale_ratio)
 
         if remaining_dist < 20:
-            print("🔥 Animation complete -> DONE")
             self.state = 'done'
             self.game.sound_manager.stop_throw()
 

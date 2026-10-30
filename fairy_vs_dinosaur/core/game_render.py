@@ -102,7 +102,6 @@ class GameRenderMixin:
             self.player.draw_path()
             for ghost in self.ghosts:
                 ghost.draw_path()
-            self.player.draw()
         self._draw_visible_ghosts()
         self._draw_controls()
         self.level_anim.draw()
