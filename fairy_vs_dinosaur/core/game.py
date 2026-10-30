@@ -13,6 +13,7 @@ from fairy_vs_dinosaur.core.level import Level
 from fairy_vs_dinosaur.core.modes import ModeManager
 from fairy_vs_dinosaur.entities.blinky import Blinky
 from fairy_vs_dinosaur.entities.clyde import Clyde
+from fairy_vs_dinosaur.entities.ghost_coordinator import GhostCoordinator
 from fairy_vs_dinosaur.entities.inky import Inky
 from fairy_vs_dinosaur.entities.pinky import Pinky
 from fairy_vs_dinosaur.entities.player import Player
@@ -132,6 +133,7 @@ class PacmanGame(GameInputMixin, GameRenderMixin, GameStatesMixin):
         self.inky = Inky(self)
         self.clyde = Clyde(self)
         self.ghosts = [self.blinky, self.pinky, self.inky, self.clyde]
+        self.ghost_coordinator = GhostCoordinator(self)
         self.pause_menu = PauseMenu(self)
         self.level_anim = LevelCompleteAnimation(self)
         self.level_menu = LevelCompleteMenu(self)

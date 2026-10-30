@@ -18,10 +18,10 @@ class Clyde(Ghost):
         ]
 
     def get_chase_target(self):
-        # Xa hơn 8 ô thì đuổi thẳng, gần hơn thì quay về vòng tuần tra để né
+        # Xa hơn 8 ô thì lấp lối thoát còn trống, gần hơn thì quay về vòng tuần tra để né
         pac_r, pac_c = self.game.player.row, self.game.player.col
         if math.sqrt((self.row - pac_r) ** 2 + (self.col - pac_c) ** 2) > 8:
-            return pac_r, pac_c
+            return self.game.ghost_coordinator.target_for(self)
         return self._next_in_scatter_cycle() or self._closest_cycle_point()
 
     def _closest_cycle_point(self):

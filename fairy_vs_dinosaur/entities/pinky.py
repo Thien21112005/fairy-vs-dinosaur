@@ -14,13 +14,5 @@ class Pinky(Ghost):
         ]
 
     def get_chase_target(self):
-        # Nhắm 4 ô phía trước người chơi; khi người chơi đi lên thì lệch thêm 4 ô sang trái như bản gốc
-        pac_r, pac_c = self.game.player.row, self.game.player.col
-        pac_dir = self.game.player.direction
-        if pac_dir == 0:
-            return pac_r, pac_c + 4
-        if pac_dir == 1:
-            return pac_r, pac_c - 4
-        if pac_dir == 2:
-            return pac_r - 4, pac_c - 4
-        return pac_r + 4, pac_c
+        # Chặn đầu: tới ngã rẽ phía trước hướng đi của người chơi
+        return self.game.ghost_coordinator.target_for(self)

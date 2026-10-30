@@ -124,5 +124,33 @@ class ChaseTargetTest(unittest.TestCase):
             self.assertLess(frames, 30, name)
 
 
+class CoordinationTest(unittest.TestCase):
+    def setUp(self):
+        self.game = make_game()
+        player = self.game.player
+        player.row, player.col, player.direction = 24, 15, 0
+        self.coordinator = self.game.ghost_coordinator
+
+    def park(self, ghost, row, col):
+        ghost.row, ghost.col = row, col
+
+    def test_ghosts_take_different_exits(self):
+        self.park(self.game.pinky, 6, 7)
+        self.park(self.game.inky, 6, 22)
+        targets = [self.coordinator.target_for(g) for g in (self.game.pinky, self.game.inky)]
+        self.assertEqual(len(set(targets)), 2)
+        self.assertTrue(set(targets) <= set(self.coordinator.escape_exits()))
+
+    def test_pinky_blocks_the_way_ahead(self):
+        self.park(self.game.pinky, 6, 7)
+        exits = self.coordinator.escape_exits()
+        self.assertEqual(self.coordinator.target_for(self.game.pinky), exits[0])
+        self.assertGreater(exits[0][1], 15)  # Player is heading right
+
+    def test_a_ghost_next_to_the_player_goes_straight_in(self):
+        self.park(self.game.inky, 24, 13)
+        self.assertEqual(self.coordinator.target_for(self.game.inky), (24, 15))
+
+
 if __name__ == "__main__":
     unittest.main()
