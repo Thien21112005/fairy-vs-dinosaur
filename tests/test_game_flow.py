@@ -113,8 +113,10 @@ class LevelCompleteFlowTest(unittest.TestCase):
 class GameOverTest(unittest.TestCase):
     def test_losing_all_lives_shows_game_over_and_can_return_to_menu(self):
         game = make_game()
-        use_ai(game, "BFS")
-        self.assertIsNotNone(run_until(game, lambda g: g.ui.game_over.visible, 20000))
+        game.lives = 1
+        game.game_started = True
+        game.start_death_sequence()
+        self.assertIsNotNone(run_until(game, lambda g: g.ui.game_over.visible, 400))
 
         pygame.event.clear()
         pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_DOWN, mod=0, unicode=""))

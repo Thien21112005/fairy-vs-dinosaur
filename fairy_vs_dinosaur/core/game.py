@@ -165,7 +165,9 @@ class PacmanGame(GameInputMixin, GameRenderMixin, GameStatesMixin):
         return self.return_code
 
     def check_collision(self, player, ghost):
-        distance = ((player.x - ghost.x) ** 2 + (player.y - ghost.y) ** 2) ** 0.5
+        dx = abs(player.x - ghost.x)
+        dx = min(dx, self.width - dx)  # Hai bên mép đường hầm là sát nhau
+        distance = (dx ** 2 + (player.y - ghost.y) ** 2) ** 0.5
         collision_radius = min(player.pac_w, player.pac_h, ghost.ghost_w, ghost.ghost_h) * 0.3
         return distance < collision_radius
 

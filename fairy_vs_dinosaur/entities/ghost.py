@@ -49,7 +49,7 @@ class Ghost(GhostMovementMixin, GhostRenderMixin, ABC):
 
         self.tunnel_slowdown_timer = 0.0
         self.tunnel_slowdown_duration = 1.5  # giây
-        self.just_teleported = False
+        self.decided_cell = None  # Ô đã quyết định hướng đi
 
         self.eating = False
         self.eat_animation_time = 0
@@ -113,6 +113,7 @@ class Ghost(GhostMovementMixin, GhostRenderMixin, ABC):
         self.hatching = False
         self.frightened_disabled = False
         self.tunnel_slowdown_timer = 0.0
+        self.decided_cell = None
         self.release_timer = self.release_delay
 
     def apply_level_difficulty(self):

@@ -1,6 +1,6 @@
 import pygame
 
-from fairy_vs_dinosaur.entities.path_drawing import draw_arrow_head, LINE_WIDTH
+from fairy_vs_dinosaur.entities.path_drawing import blit_wrapped, draw_arrow_head, LINE_WIDTH
 
 
 class GhostRenderMixin:
@@ -36,8 +36,8 @@ class GhostRenderMixin:
         return frames[int(self.time / self.animation_speed) % len(frames)]
 
     def draw(self):
-        self.game.screen.blit(self._current_image(),
-                              (self.x - self.ghost_w / 2.0, self.y + self.game.y_offset - self.ghost_h / 2.0))
+        blit_wrapped(self.game.screen, self._current_image(),
+                     self.x - self.ghost_w / 2.0, self.y + self.game.y_offset - self.ghost_h / 2.0)
 
     def _cell_center(self, r, c):
         return (c * self.game.num2_c + self.game.num2_c / 2.0,

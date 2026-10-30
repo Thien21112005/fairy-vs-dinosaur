@@ -48,6 +48,7 @@ class GhostMovementMixin:
             self.x = self.col * self.game.num2_c + self.game.num2_c / 2.0
             self.y = self.row * self.game.num1_r + self.game.num1_r / 2.0
             self.direction = 0
+            self.decided_cell = None
             self.frightened_disabled = True
 
     def _update_returning_home(self, dt):
@@ -97,13 +98,19 @@ class GhostMovementMixin:
 
         proposed_x = self._apply_tunnel(proposed_x, current_row)
         self._advance(vx, vy, proposed_x, proposed_y, current_col, current_row, turn_on_collision=True)
+        self._decide_at_cell_center(max(abs(vx), abs(vy)) * (dt / 1000.0))
 
-        # Tại tâm ô thì chọn hướng mới
+    def _decide_at_cell_center(self, step):
+        """Chọn hướng đúng một lần mỗi ô, khi tới tâm ô, không phụ thuộc tốc độ hay thời gian khung hình."""
+        cell = (self.row, self.col)
+        if cell == self.decided_cell:
+            return
         center_x = self.col * self.game.num2_c + self.game.num2_c / 2.0
         center_y = self.row * self.game.num1_r + self.game.num1_r / 2.0
-        if abs(self.x - center_x) < 1.0 and abs(self.y - center_y) < 1.0:
+        if abs(self.x - center_x) <= step and abs(self.y - center_y) <= step:
             self.x = center_x
             self.y = center_y
+            self.decided_cell = cell
             self.choose_direction()
 
     def _frightened_active(self):
@@ -121,18 +128,14 @@ class GhostMovementMixin:
         return vx, vy
 
     def _apply_tunnel(self, proposed_x, current_row):
-        """Xuyên đường hầm, không cho xuyên tiếp khi đang trong thời gian giảm tốc."""
-        self.just_teleported = False
+        """Xuyên đường hầm rồi đi chậm lại một lúc."""
         if self.game.level.is_tunnel_row(current_row) and self.direction in (0, 1):
-            ready = self.tunnel_slowdown_timer <= 0
             if proposed_x < 0:
-                proposed_x = proposed_x + self.game.width if ready else 0
-                self.just_teleported = ready
+                proposed_x += self.game.width
+                self.tunnel_slowdown_timer = self.tunnel_slowdown_duration
             elif proposed_x >= self.game.width:
-                proposed_x = proposed_x - self.game.width if ready else self.game.width - 1
-                self.just_teleported = ready
-        if self.just_teleported:
-            self.tunnel_slowdown_timer = self.tunnel_slowdown_duration
+                proposed_x -= self.game.width
+                self.tunnel_slowdown_timer = self.tunnel_slowdown_duration
         return proposed_x
 
     def _advance(self, vx, vy, proposed_x, proposed_y, current_col, current_row, turn_on_collision):

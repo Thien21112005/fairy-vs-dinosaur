@@ -3,7 +3,7 @@ import random
 import pygame
 
 from fairy_vs_dinosaur.config import asset
-from fairy_vs_dinosaur.entities.path_drawing import draw_arrow_head, LINE_WIDTH
+from fairy_vs_dinosaur.entities.path_drawing import blit_wrapped, draw_arrow_head, LINE_WIDTH
 
 START_ROW = 24
 START_COL = 15
@@ -192,7 +192,7 @@ class Player:
         else:
             frame_i = int(self.time / self.game.frame_ms) % self.frame if self.moved else 3
             img = self._current_animations()[self.direction][frame_i]
-        self.game.screen.blit(img, (self.x - self.pac_w / 2.0, self.y + self.game.y_offset - self.pac_h / 2.0))
+        blit_wrapped(self.game.screen, img, self.x - self.pac_w / 2.0, self.y + self.game.y_offset - self.pac_h / 2.0)
 
     def _cell_center(self, r, c):
         return (c * self.game.num2_c + self.game.num2_c / 2.0,
