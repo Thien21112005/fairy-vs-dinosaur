@@ -2,7 +2,7 @@ import os
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS_DIR = os.path.join(PROJECT_ROOT, "assets")
-DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+DATA_DIR = os.environ.get("FAIRY_DATA_DIR", os.path.join(PROJECT_ROOT, "data"))
 SETTINGS_FILE = os.path.join(DATA_DIR, "game_settings.json")
 HISTORY_FILE = os.path.join(DATA_DIR, "history.json")
 
