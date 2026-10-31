@@ -59,7 +59,7 @@ def label_font(size):
 
 
 def strong_font(size):
-    """Điểm số và phần nhấn mạnh."""
+    """Điểm số và phần nhấn mạnh. Chữ số dạng lining cùng độ rộng: mọi con số đều dùng font này hoặc body_font."""
     return _font("AlegreyaSans-Bold.ttf", size)
 
 

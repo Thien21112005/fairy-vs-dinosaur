@@ -79,7 +79,7 @@ class GameRenderMixin:
         self.screen.blit(self._countdown_dim, (0, 0))
 
         if count not in self._countdown_digits:
-            self._countdown_digits[count] = outlined_text(str(count), theme.display_font(150), theme.STONE,
+            self._countdown_digits[count] = outlined_text(str(count), theme.strong_font(150), theme.STONE,
                                                           theme.COPPER_DARK, width=4)
         digit = self._countdown_digits[count]
         size = (int(digit.get_width() * scale), int(digit.get_height() * scale))

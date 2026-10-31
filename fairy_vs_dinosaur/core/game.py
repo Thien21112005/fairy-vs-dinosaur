@@ -30,7 +30,7 @@ from fairy_vs_dinosaur.settings_store import load_settings
 from fairy_vs_dinosaur.ui.hud import UI
 from fairy_vs_dinosaur.ui.level_complete import LevelCompleteAnimation, LevelCompleteMenu
 from fairy_vs_dinosaur.ui.pause_menu import PauseMenu
-from fairy_vs_dinosaur.ui.theme import display_font, FLAME, NIGHT
+from fairy_vs_dinosaur.ui.theme import FLAME, NIGHT, strong_font
 from fairy_vs_dinosaur.ui.widgets import outlined_text
 
 
@@ -145,7 +145,7 @@ class PacmanGame(GameInputMixin, GameRenderMixin, GameStatesMixin):
         brick = pygame.image.load(asset("images/tiles/background.jpeg")).convert()
         self.background = self.level.render_static_board(brick)
 
-        self.score_images = {points: outlined_text(str(points), display_font(24), FLAME, NIGHT, shadow=False)
+        self.score_images = {points: outlined_text(str(points), strong_font(24), FLAME, NIGHT, shadow=False)
                              for points in [200, 400, 800, 1600]}
 
     def visible_ghosts(self):
