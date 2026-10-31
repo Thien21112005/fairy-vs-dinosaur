@@ -16,6 +16,7 @@ BUTTON_STYLES = {
                'text': theme.PARCHMENT},
     'active': {'fill': (theme.FLAME_LIGHT, theme.EMBER), 'edge': ((255, 240, 186), theme.EMBER_DARK),
                'text': theme.NIGHT},
+    'on': {'fill': (theme.CRYSTAL, (76, 186, 194)), 'edge': ((206, 250, 250), (40, 112, 120)), 'text': theme.NIGHT},
     'off': {'fill': ((30, 46, 50), (18, 30, 34)), 'edge': ((96, 110, 110), (52, 62, 64)), 'text': theme.MIST},
 }
 
@@ -190,41 +191,3 @@ def dimmed_backdrop(background):
         blurred.fill((96, 128, 132), special_flags=pygame.BLEND_RGB_MULT)
         _backdrops[key] = blurred
     return _backdrops[key]
-
-
-# --- Sẽ bỏ khi mọi màn hình đã chuyển sang các khối dựng ở trên ---
-
-_legacy_fonts = {}
-
-
-def get_font(name, size, bold=False):
-    key = (name, size, bold)
-    if key not in _legacy_fonts:
-        _legacy_fonts[key] = pygame.font.SysFont(name, size, bold=bold)
-    return _legacy_fonts[key]
-
-
-def draw_gradient_rect(surface, rect, start_color, end_color, border_color=None, border_width=0, border_radius=0):
-    start_alpha = start_color[3] if len(start_color) > 3 else 255
-    end_alpha = end_color[3] if len(end_color) > 3 else 255
-    gradient = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-    for y in range(rect.height):
-        ratio = y / rect.height
-        color = (int(start_color[0] + (end_color[0] - start_color[0]) * ratio),
-                 int(start_color[1] + (end_color[1] - start_color[1]) * ratio),
-                 int(start_color[2] + (end_color[2] - start_color[2]) * ratio),
-                 int(start_alpha + (end_alpha - start_alpha) * ratio))
-        pygame.draw.line(gradient, color, (0, y), (rect.width, y))
-    if border_radius > 0:
-        mask = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-        pygame.draw.rect(mask, (255, 255, 255, 255), (0, 0, rect.width, rect.height), border_radius=border_radius)
-        gradient.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
-    surface.blit(gradient, rect.topleft)
-    if border_color and border_width > 0:
-        pygame.draw.rect(surface, border_color, rect, width=border_width, border_radius=border_radius)
-
-
-def draw_soft_rect(surface, rect, color, border_radius=0):
-    temp = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
-    pygame.draw.rect(temp, color, (0, 0, rect.width, rect.height), border_radius=border_radius)
-    surface.blit(temp, rect.topleft)
