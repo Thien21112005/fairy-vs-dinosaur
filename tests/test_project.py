@@ -15,6 +15,8 @@ from fairy_vs_dinosaur.ui.screens.about import AboutMenu
 from fairy_vs_dinosaur.ui.screens.history import HistoryMenu
 from fairy_vs_dinosaur.ui.screens.main_menu import MainMenu
 from fairy_vs_dinosaur.ui.screens.settings import SettingsMenu
+from fairy_vs_dinosaur.ui.theme import body_font, display_font, fit_font, label_font, strong_font
+from tests.helpers import make_game
 
 
 class TranslationTest(unittest.TestCase):
@@ -90,9 +92,7 @@ class ScreensTest(unittest.TestCase):
         about.draw_content()
         about.draw_back_button()
         history = HistoryMenu(menu.screen, menu.sound_manager, menu.background)
-        history.draw_title()
-        history.draw_table()
-        history.draw_buttons()
+        history.draw_frame()
         SettingsMenu(menu.screen, menu.sound_manager, menu.background).draw()
 
     def test_menu_loop_exits_cleanly_on_quit(self):
@@ -105,6 +105,62 @@ class ScreensTest(unittest.TestCase):
 class HistoryChartTest(unittest.TestCase):
     def test_chart_uses_a_backend_that_leaves_the_game_window_alone(self):
         self.assertEqual(matplotlib.get_backend().lower(), "agg")
+
+
+class FontTest(unittest.TestCase):
+    def test_bundled_fonts_have_every_translated_character(self):
+        pygame.font.init()
+        for font in (display_font(20), label_font(20), strong_font(20), body_font(20)):
+            for language, table in translations.items():
+                for key, text in table.items():
+                    missing = [c for c, metric in zip(text, font.metrics(text)) if metric is None]
+                    self.assertEqual(missing, [], f"{language}/{key}")
+
+    def test_digits_are_tabular(self):
+        pygame.font.init()
+        for font in (strong_font(20), body_font(20)):
+            self.assertEqual(len({font.size(digit)[0] for digit in "0123456789"}), 1)
+
+    def test_fit_font_shrinks_long_text_into_the_width(self):
+        pygame.font.init()
+        text = translations["Vietnamese"]["game_over"]
+        self.assertLessEqual(fit_font(display_font, text, 300, 76).size(text)[0], 300)
+
+
+class HudControlsTest(unittest.TestCase):
+    def test_controls_stay_inside_the_window_without_overlapping(self):
+        ui = make_game().ui
+        window = ui.game.screen.get_rect()
+        controls = [*ui.ghost_rects, ui.hint_rect, ui.solve_rect]
+        for i, rect in enumerate(controls):
+            self.assertTrue(window.contains(rect))
+            self.assertEqual(rect.collidelist(controls[i + 1:]), -1)
+
+    def test_clicking_a_listed_algorithm_selects_that_algorithm(self):
+        for index, option in enumerate(make_game().ui.solve_options):
+            game = make_game()
+            game._handle_hud_click(game.ui.solve_rect.center)
+            self.assertTrue(game.ui.solve_menu_visible)
+            game._handle_hud_click(game.ui.solve_option_rects[index].center)
+            self.assertEqual(game.ui.selected_solve, option)
+            self.assertIs(game.path_finder, game.path_finders[option])
+            self.assertFalse(game.ui.solve_menu_visible)
+
+    def test_clicking_a_dinosaur_button_hides_that_dinosaur(self):
+        game = make_game()
+        game._handle_hud_click(game.ui.ghost_rects[1].center)
+        self.assertEqual(game.ui.visible_ghost_flags(), [True, False, True, True])
+
+
+class MainMenuKeyboardTest(unittest.TestCase):
+    def test_arrow_keys_cycle_through_the_buttons(self):
+        menu = MainMenu()
+        menu._handle_key(pygame.K_RIGHT)
+        self.assertEqual(menu.focus_index, 0)
+        menu._handle_key(pygame.K_LEFT)
+        self.assertEqual(menu.focus_index, len(menu.buttons) - 1)
+        menu._handle_key(pygame.K_RIGHT)
+        self.assertEqual(menu.focus_index, 0)
 
 
 class ProjectLayoutTest(unittest.TestCase):
