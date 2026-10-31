@@ -26,7 +26,7 @@ class PauseMenu(OverlayMenu):
         ]
 
     def _buttons_start_y(self):
-        return self.y + 150
+        return self.y + 176
 
     def _confirm_question(self):
         if self.confirm_action == CONFIRM_RESTART:

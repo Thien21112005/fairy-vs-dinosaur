@@ -2,7 +2,10 @@ import pygame
 
 from fairy_vs_dinosaur.config import asset
 from fairy_vs_dinosaur.i18n import get_translation
+from fairy_vs_dinosaur.ui import theme
 from fairy_vs_dinosaur.ui.overlay_menu import OverlayMenu
+from fairy_vs_dinosaur.ui.theme import label_font, strong_font
+from fairy_vs_dinosaur.ui.widgets import draw_text
 
 
 class LevelCompleteAnimation:
@@ -183,8 +186,7 @@ class LevelCompleteMenu(OverlayMenu):
         ]
 
     def _buttons_start_y(self):
-        total_buttons_height = len(self.buttons) * self.BUTTON_HEIGHT + (len(self.buttons) - 1) * self.BUTTON_MARGIN
-        return (self.game.height - total_buttons_height) // 2 + 80
+        return self.y + 256
 
     def _confirm_question(self):
         return "Return to main menu? Progress will not be saved."
@@ -198,19 +200,16 @@ class LevelCompleteMenu(OverlayMenu):
         return True
 
     def _draw_extra_info(self, screen):
-        y_pos = self.y + 160
         minutes = int(self.game.play_time // 60000)
         seconds = int((self.game.play_time // 1000) % 60)
         milliseconds = int(self.game.play_time % 1000)
-        self._draw_info_line(screen, f"Score: {self.game.score}", y_pos)
-        self._draw_info_line(screen, f"Time: {minutes:02d}:{seconds:02d}.{milliseconds:03d}", y_pos + 25)
+        self._draw_info_line(screen, "Score", f"{self.game.score:06d}", self.y + 172)
+        self._draw_info_line(screen, "Time", f"{minutes:02d}:{seconds:02d}.{milliseconds:03d}", self.y + 208)
 
-    def _draw_info_line(self, screen, text, y):
-        surface = self.small_font.render(text, True, (255, 255, 100))
-        shadow = self.small_font.render(text, True, (100, 100, 0))
-        rect = surface.get_rect(center=(self.game.width // 2, y))
-        screen.blit(shadow, shadow.get_rect(center=(rect.centerx + 1, rect.centery + 1)))
-        screen.blit(surface, rect)
+    def _draw_info_line(self, screen, label, value, y):
+        left = self.game.width // 2 - self.BUTTON_WIDTH // 2
+        draw_text(screen, label, label_font(20), theme.COPPER_LIGHT, midleft=(left, y))
+        draw_text(screen, value, strong_font(24), theme.PARCHMENT, midright=(left + self.BUTTON_WIDTH, y))
 
     def open(self):
         """Chuẩn bị hiển thị: nền mờ phải chụp lại từ màn chơi hiện tại"""

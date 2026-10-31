@@ -1,7 +1,11 @@
 import pygame
 
 from fairy_vs_dinosaur.i18n import get_translation
-from fairy_vs_dinosaur.ui.widgets import draw_gradient_rect, draw_soft_rect
+from fairy_vs_dinosaur.ui import theme
+from fairy_vs_dinosaur.ui.theme import label_font, strong_font
+from fairy_vs_dinosaur.ui.widgets import draw_divider, draw_menu_button, draw_text, draw_title
+
+MAX_DIM_ALPHA = 225
 
 
 class GameOverScreen:
@@ -10,14 +14,22 @@ class GameOverScreen:
         self.visible = False
         self.selected = 0  # 0: Restart, 1: Main Menu
         self.hover = [False, False]
-        self.font_large = pygame.font.SysFont('monospace', 72, bold=True)
-        self.font_medium = pygame.font.SysFont('monospace', 36, bold=True)
-        self.font_small = pygame.font.SysFont('monospace', 24, bold=True)
         self.fade_alpha = 0
         self.fade_speed = 3
+        self.dim = self._build_dim()
+
+    def _build_dim(self):
+        """Màn tối dần về phía đỏ than phía dưới, gợi lại ngọn lửa của khủng long."""
+        width, height = self.game.width, self.game.height
+        dim = pygame.Surface((width, height))
+        for y in range(height):
+            ratio = y / height
+            color = [int(theme.NIGHT[i] + (theme.BLOOD_DARK[i] - theme.NIGHT[i]) * ratio * 0.6) for i in range(3)]
+            pygame.draw.line(dim, color, (0, y), (width, y))
+        return dim
 
     def _option_rect(self, index):
-        return pygame.Rect(self.game.width // 2 - 120, self.game.height // 2 + index * 70 - 20, 240, 50)
+        return pygame.Rect(self.game.width // 2 - 150, self.game.height // 2 + index * 66 + 10, 300, 52)
 
     def show(self):
         self.visible = True
@@ -36,57 +48,27 @@ class GameOverScreen:
 
     def draw(self):
         screen = self.game.screen
-        width, height = self.game.width, self.game.height
+        center_x = self.game.width // 2
 
-        # Gradient từ đen sang đỏ đậm, fade in theo alpha
-        overlay = pygame.Surface((width, height))
-        for y in range(height):
-            pygame.draw.line(overlay, (int(50 * (y / height)), 0, 0), (0, y), (width, y))
-        overlay.set_alpha(self.fade_alpha)
-        screen.blit(overlay, (0, 0))
+        self.dim.set_alpha(min(self.fade_alpha, MAX_DIM_ALPHA))
+        screen.blit(self.dim, (0, 0))
 
-        title = get_translation("game_over")
-        title_text = self.font_large.render(title, True, (255, 50, 50))
-        title_rect = title_text.get_rect(center=(width // 2, height // 3 - 20))
-        screen.blit(self.font_large.render(title, True, (100, 0, 0)), (title_rect.x + 4, title_rect.y + 4))
+        title_y = self.game.height // 2 - 130
+        draw_title(screen, get_translation("game_over"), (center_x, title_y), 76, self.game.width - 48,
+                   color=theme.FLAME_LIGHT, edge=theme.BLOOD)
+        draw_divider(screen, (center_x, title_y + 50), 340)
 
-        glow = pygame.Surface((title_rect.width + 20, title_rect.height + 20), pygame.SRCALPHA)
-        glow.blit(title_text, (10, 10))
-        glow = pygame.transform.smoothscale(glow, (title_rect.width + 40, title_rect.height + 40))
-        glow.set_alpha(50)
-        screen.blit(glow, (title_rect.x - 20, title_rect.y - 20))
-        screen.blit(title_text, title_rect)
-
-        score_text = self.font_small.render(f"{get_translation('final_score')}: {self.game.score:06d}", True,
-                                            (255, 255, 100))
-        screen.blit(score_text, score_text.get_rect(center=(width // 2, title_rect.bottom + 20)))
+        score_y = title_y + 88
+        label = get_translation("final_score")
+        label_surface_width = label_font(22).size(label)[0]
+        value = f"{self.game.score:06d}"
+        total = label_surface_width + 14 + strong_font(28).size(value)[0]
+        left = center_x - total // 2
+        draw_text(screen, label, label_font(22), theme.COPPER_LIGHT, midleft=(left, score_y))
+        draw_text(screen, value, strong_font(28), theme.PARCHMENT, midright=(left + total, score_y))
 
         for i, option in enumerate([get_translation("restart"), get_translation("main_menu")]):
-            self._draw_option(option, i)
-
-    def _draw_option(self, option, index):
-        screen = self.game.screen
-        rect = self._option_rect(index)
-
-        if index == self.selected or self.hover[index]:
-            gradient_start, gradient_end, border_color = (255, 200, 0), (200, 100, 0), (255, 255, 100)
-            if self.hover[index]:
-                draw_soft_rect(screen, rect.inflate(8, 8), (255, 255, 150, 100), border_radius=12)
-        else:
-            gradient_start, gradient_end, border_color = (100, 100, 100), (50, 50, 50), (150, 150, 150)
-
-        draw_gradient_rect(screen, rect, gradient_start, gradient_end, border_radius=10)
-        pygame.draw.rect(screen, (0, 0, 0, 100), rect.move(2, 2), width=3, border_radius=10)
-        pygame.draw.rect(screen, border_color, rect, width=3, border_radius=10)
-
-        text = self.font_medium.render(option, True, (255, 255, 255))
-        text_rect = text.get_rect(center=rect.center)
-        screen.blit(text, text_rect)
-
-        if index == self.selected:
-            arrow = self.font_medium.render(">", True, (255, 255, 0))
-            screen.blit(arrow, (rect.x - 40, text_rect.y))
-            screen.blit(arrow, (rect.right + 10, text_rect.y))
+            draw_menu_button(screen, self._option_rect(i), option, i == self.selected or self.hover[i], size=26)
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
