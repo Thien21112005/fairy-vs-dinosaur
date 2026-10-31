@@ -2,40 +2,32 @@ import pygame
 
 from fairy_vs_dinosaur.i18n import get_translation
 from fairy_vs_dinosaur.settings_store import CONTROL_SCHEMES, LANGUAGES, load_settings, save_settings
+from fairy_vs_dinosaur.ui import theme
+from fairy_vs_dinosaur.ui.theme import body_font, fit_font, strong_font
+from fairy_vs_dinosaur.ui.widgets import (BUTTON_STYLES, chamfered_slab, dimmed_backdrop, draw_divider,
+                                          draw_menu_button, draw_panel, draw_slab_button, draw_text, draw_title)
+
+PANEL_WIDTH = 672
+PANEL_HEIGHT = 450
+PANEL_PADDING = 36
+CONTROL_COLUMN = 236  # Lề trái của cột điều khiển, tính từ mép panel
+LABEL_WIDTH = CONTROL_COLUMN - PANEL_PADDING - 12
+FIRST_ROW = 108
+TOGGLE_SIZE = (116, 34)
+SLIDER_WIDTH = 212
+SLIDER_TRACK_HEIGHT = 8
+ACTION_BUTTON_SIZE = (200, 50)
 
 
 class SettingsMenu:
     def __init__(self, screen, sound_manager, background):
         self.screen = screen
         self.sound_manager = sound_manager
-        self.background = background
+        self.background = dimmed_backdrop(background)
         self.width, self.height = screen.get_size()
 
         self.settings = load_settings()
         self.sound_manager.apply_settings(self.settings)
-
-        # Fonts - changed to 'times' for a more elegant, fantasy-like feel (if available; falls back to system default)
-        self.title_font = pygame.font.SysFont('times', 48, bold=True)
-        self.section_font = pygame.font.SysFont('times', 32, bold=True)
-        self.option_font = pygame.font.SysFont('times', 24)
-        self.button_font = pygame.font.SysFont('times', 28, bold=True)
-        self.volume_font = pygame.font.SysFont('times', 20)
-
-        # Updated theme colors to better match the image: dark mystical tones, gold title, blue buttons, light text for contrast
-        self.panel_color = (20, 40, 60, 180)  # Semi-transparent dark blueish-purple panel to blend with background
-        self.bg_color = (0, 0, 0, 128)  # Semi-transparent dark overlay (kept same)
-        self.title_color = (184, 134, 11)  # Goldish rusty color like the title in the image
-        self.section_color = (150, 150, 150)  # Lighter gray for sections
-        self.text_color = (220, 220, 220)  # Light text for better contrast on dark panel
-        self.highlight_color = (100, 200, 255)  # Blue glow highlight to match fairy/mushroom tones
-        self.slider_bg_color = (50, 50, 50)  # Dark gray slider bg
-        self.slider_color = (0, 191, 255)  # Blue slider fill
-        self.slider_knob_color = (100, 100, 100)  # Dark gray knob
-        self.toggle_on_color = (0, 200, 100)  # Greenish for ON, matching forest elements
-        self.toggle_off_color = (200, 50, 50)  # Reddish for OFF, matching dinosaur
-        self.button_color = (70, 130, 180)  # Blue buttons like in the image
-        self.button_hover_color = (50, 100, 150)  # Darker blue hover
-        self.shadow_color = (0, 0, 0, 50)  # Soft shadow for panel
 
         # Control scheme options
         self.control_schemes = CONTROL_SCHEMES
@@ -43,30 +35,24 @@ class SettingsMenu:
         # Language options
         self.languages = LANGUAGES
 
-        # Panel dimensions - reverted height to original since fullscreen is removed
-        self.panel_width = 700
-        self.panel_height = 550
-        self.panel_x = (self.width - self.panel_width) // 2
-        self.panel_y = (self.height - self.panel_height) // 2
-        self.panel_rect = pygame.Rect(self.panel_x, self.panel_y, self.panel_width, self.panel_height)
+        self.panel_rect = pygame.Rect((self.width - PANEL_WIDTH) // 2, (self.height - PANEL_HEIGHT) // 2,
+                                      PANEL_WIDTH, PANEL_HEIGHT)
+        self.panel_x, self.panel_y = self.panel_rect.topleft
 
-        # UI Elements - adjusted to fit inside panel
-        panel_inner_x = self.panel_x + 50
-        panel_inner_y = self.panel_y + 120  # Adjusted for better spacing
-        self.back_button_rect = pygame.Rect(self.panel_x + 100, self.panel_y + self.panel_height - 80, 200, 50)
-        self.apply_button_rect = pygame.Rect(self.panel_x + self.panel_width - 300, self.panel_y + self.panel_height - 80, 200, 50)
+        control_x = self.panel_x + CONTROL_COLUMN
+        right_edge = self.panel_rect.right - PANEL_PADDING
+        row_y = self.panel_y + FIRST_ROW
 
-        # Slider positions - moved right to avoid label overlap, width reduced for better fit
-        self.music_slider_rect = pygame.Rect(panel_inner_x + 220, panel_inner_y, 250, 20)
-        self.sfx_slider_rect = pygame.Rect(panel_inner_x + 220, panel_inner_y + 60, 250, 20)
+        self.music_slider_rect = pygame.Rect(control_x, row_y + 7, SLIDER_WIDTH, 20)
+        self.sfx_slider_rect = pygame.Rect(control_x, row_y + 67, SLIDER_WIDTH, 20)
+        self.music_toggle_rect = pygame.Rect((right_edge - TOGGLE_SIZE[0], row_y), TOGGLE_SIZE)
+        self.sfx_toggle_rect = pygame.Rect((right_edge - TOGGLE_SIZE[0], row_y + 60), TOGGLE_SIZE)
+        self.control_selector_rect = pygame.Rect(control_x, row_y + 118, right_edge - control_x, 44)
+        self.language_selector_rect = pygame.Rect(control_x, row_y + 178, right_edge - control_x, 44)
 
-        # Toggle positions - moved right to add space after percentage
-        self.music_toggle_rect = pygame.Rect(panel_inner_x + 530, panel_inner_y - 5, 80, 30)
-        self.sfx_toggle_rect = pygame.Rect(panel_inner_x + 530, panel_inner_y + 55, 80, 30)
-
-        # Selector positions - aligned with sliders, adjusted spacing
-        self.control_selector_rect = pygame.Rect(panel_inner_x + 220, panel_inner_y + 120, 250, 40)
-        self.language_selector_rect = pygame.Rect(panel_inner_x + 220, panel_inner_y + 190, 250, 40)
+        button_y = self.panel_rect.bottom - ACTION_BUTTON_SIZE[1] - 28
+        self.back_button_rect = pygame.Rect((self.panel_x + PANEL_PADDING, button_y), ACTION_BUTTON_SIZE)
+        self.apply_button_rect = pygame.Rect((right_edge - ACTION_BUTTON_SIZE[0], button_y), ACTION_BUTTON_SIZE)
 
         # Hover states
         self.back_hover = False
@@ -91,148 +77,91 @@ class SettingsMenu:
 
     def draw_slider(self, surface, rect, value, hover=False, dragging=False):
         """Vẽ thanh slider với hiển thị giá trị"""
-        # Background
-        pygame.draw.rect(surface, self.slider_bg_color, rect, border_radius=10)
-
-        # Filled portion
+        track = pygame.Rect(rect.left, rect.centery - SLIDER_TRACK_HEIGHT // 2, rect.width, SLIDER_TRACK_HEIGHT)
+        pygame.draw.rect(surface, theme.NIGHT, track, border_radius=3)
         fill_width = int(value * rect.width)
-        fill_rect = pygame.Rect(rect.left, rect.top, fill_width, rect.height)
-        pygame.draw.rect(surface, self.slider_color, fill_rect, border_radius=10)
+        pygame.draw.rect(surface, theme.CRYSTAL, (track.x, track.y, fill_width, track.height), border_radius=3)
+        pygame.draw.rect(surface, theme.COPPER_DARK, track, width=1, border_radius=3)
 
-        # Knob
-        knob_x = rect.left + fill_width - 10
-        knob_rect = pygame.Rect(knob_x, rect.top - 5, 20, 30)
-        knob_color = self.highlight_color if hover or dragging else self.slider_knob_color
-        pygame.draw.rect(surface, knob_color, knob_rect, border_radius=10)
+        knob_rect = pygame.Rect(0, 0, 16, 28)
+        knob_rect.center = (rect.left + fill_width, rect.centery)
+        colors = BUTTON_STYLES['active' if hover or dragging else 'normal']
+        fill = colors['edge'] if not (hover or dragging) else colors['fill']
+        surface.blit(chamfered_slab(knob_rect.size, fill, colors['edge'], chamfer=4, edge_width=1), knob_rect)
 
-        # Volume text
-        volume_text = self.volume_font.render(f"{int(value * 100)}%", True, self.text_color)
-        volume_y = rect.centery - volume_text.get_height() // 2
-        surface.blit(volume_text, (rect.right + 10, volume_y))
-
+        draw_text(surface, f"{int(value * 100)}%", body_font(18), theme.PARCHMENT,
+                  midleft=(rect.right + 14, rect.centery))
         return knob_rect
 
     def draw_toggle(self, surface, rect, state):
-        """Vẽ nút toggle kiểu slide"""
-        # Background
-        bg_color = self.toggle_on_color if state else self.toggle_off_color
-        pygame.draw.rect(surface, bg_color, rect, border_radius=15)
+        """Vẽ công tắc: núm ở một đầu, chữ ở phần còn lại để không che nhau"""
+        colors = draw_slab_button(surface, rect, 'on' if state else 'off')
 
-        # Knob
-        knob_x = rect.right - 30 if state else rect.left + 5
-        knob_rect = pygame.Rect(knob_x, rect.top + 5, 20, 20)
-        pygame.draw.circle(surface, (255, 255, 255), knob_rect.center, 10)
+        knob_size = rect.height - 12
+        knob_x = rect.right - knob_size - 6 if state else rect.left + 6
+        knob_rect = pygame.Rect(knob_x, rect.top + 6, knob_size, knob_size)
+        pygame.draw.rect(surface, theme.NIGHT if state else theme.MIST, knob_rect, border_radius=3)
 
-        # Text
-        state_text = get_translation("on") if state else get_translation("off")
-        text_color = (255, 255, 255)
-        state_surface = self.volume_font.render(state_text, True, text_color)
-        text_x = rect.centerx - state_surface.get_width() // 2
-        text_y = rect.centery - state_surface.get_height() // 2
-        surface.blit(state_surface, (text_x, text_y))
-
+        label = get_translation("on") if state else get_translation("off")
+        text_area = rect.width - knob_size - 18
+        text_x = rect.left + 6 + text_area // 2 if state else knob_rect.right + 3 + text_area // 2
+        font = fit_font(strong_font, label, text_area - 4, 17)
+        draw_text(surface, label, font, colors['text'], center=(text_x, rect.centery))
         return rect
 
     def draw_option_selector(self, surface, rect, options, selected_index):
-        """Vẽ selector cho các tùy chọn"""
-        # Background
-        pygame.draw.rect(surface, self.slider_bg_color, rect, border_radius=20)
-        pygame.draw.rect(surface, (100, 100, 100), rect, 2, border_radius=20)  # Slightly darker border
+        """Vẽ selector cho các tùy chọn: bấm nửa trái lùi, nửa phải tiến"""
+        colors = draw_slab_button(surface, rect, 'normal')
+        draw_text(surface, options[selected_index], strong_font(20), colors['text'], center=rect.center)
 
-        # Text
-        text = self.option_font.render(options[selected_index], True, self.text_color)
-        text_rect = text.get_rect(center=rect.center)
-        surface.blit(text, text_rect)
-
-        # Arrows (triangles)
-        arrow_color = (150, 150, 150)  # Lighter arrows
-        arrow_size = 10
-
-        # Left arrow (pointing left)
-        left_arrow = [
-            (rect.left + 20 + arrow_size, rect.centery - arrow_size // 2),
-            (rect.left + 20, rect.centery),
-            (rect.left + 20 + arrow_size, rect.centery + arrow_size // 2)
-        ]
-        pygame.draw.polygon(surface, arrow_color, left_arrow)
-
-        # Right arrow (pointing right)
-        right_arrow = [
-            (rect.right - 20 - arrow_size, rect.centery - arrow_size // 2),
-            (rect.right - 20, rect.centery),
-            (rect.right - 20 - arrow_size, rect.centery + arrow_size // 2)
-        ]
-        pygame.draw.polygon(surface, arrow_color, right_arrow)
-
+        mouse_pos = pygame.mouse.get_pos()
+        for sign, x in ((-1, rect.left + 22), (1, rect.right - 22)):
+            half = rect.left if sign < 0 else rect.centerx
+            hover = pygame.Rect(half, rect.top, rect.width // 2, rect.height).collidepoint(mouse_pos)
+            color = theme.FLAME if hover else theme.COPPER_LIGHT
+            points = [(x - sign * 5, rect.centery - 7), (x + sign * 3, rect.centery), (x - sign * 5, rect.centery + 7)]
+            pygame.draw.lines(surface, color, False, points, 3)
         return rect
 
     def _draw_row_label(self, key, row_rect):
-        label = self.option_font.render(get_translation(key), True, self.text_color)
-        self.screen.blit(label, label.get_rect(midleft=(self.panel_x + 50, row_rect.centery)))
-
-    def _draw_text_button(self, rect, key, hover):
-        pygame.draw.rect(self.screen, self.button_hover_color if hover else self.button_color, rect, border_radius=25)
-        pygame.draw.rect(self.screen, (255, 255, 255), rect, 2, border_radius=25)
-        text = self.button_font.render(get_translation(key), True, (255, 255, 255))
-        self.screen.blit(text, text.get_rect(center=rect.center))
+        text = get_translation(key)
+        font = fit_font(strong_font, text, LABEL_WIDTH, 21)
+        draw_text(self.screen, text, font, theme.PARCHMENT, midleft=(self.panel_x + PANEL_PADDING, row_rect.centery))
 
     def draw(self):
-        """Vẽ toàn bộ giao diện settings - added shadow, icons, and semi-transparent panel with Surface"""
-        # Draw main menu background
+        """Vẽ toàn bộ giao diện settings"""
         self.screen.blit(self.background, (0, 0))
+        draw_panel(self.screen, self.panel_rect)
 
-        # Overlay background
-        bg_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        bg_surface.fill(self.bg_color)
-        self.screen.blit(bg_surface, (0, 0))
-
-        # Shadow for panel (added for nice visual effect)
-        shadow_surface = pygame.Surface((self.panel_width, self.panel_height), pygame.SRCALPHA)
-        pygame.draw.rect(shadow_surface, self.shadow_color, (0, 0, self.panel_width, self.panel_height), border_radius=30)
-        self.screen.blit(shadow_surface, (self.panel_x + 5, self.panel_y + 5))
-
-        # Main panel - using Surface for true semi-transparency and rounded corners
-        panel_surface = pygame.Surface((self.panel_width, self.panel_height), pygame.SRCALPHA)
-        pygame.draw.rect(panel_surface, self.panel_color, (0, 0, self.panel_width, self.panel_height), border_radius=30)
-        self.screen.blit(panel_surface, (self.panel_x, self.panel_y))
-
-        # Title - added slight glow effect by drawing outline
-        title_text = self.title_font.render(get_translation("settings"), True, self.title_color)
-        title_rect = title_text.get_rect(center=(self.width // 2, self.panel_y + 50))
-        # Glow: draw slightly offset with semi-transparent color
-        for dx, dy in [(-1, -1), (1, -1), (-1, 1), (1, 1)]:
-            glow_text = self.title_font.render(get_translation("settings"), True, self.highlight_color)
-            self.screen.blit(glow_text, title_rect.move(dx, dy))
-        self.screen.blit(title_text, title_rect)
+        center_x = self.panel_rect.centerx
+        draw_title(self.screen, get_translation("settings"), (center_x, self.panel_y + 44), 40, PANEL_WIDTH - 60)
+        draw_divider(self.screen, (center_x, self.panel_y + 78), 360)
 
         self._draw_row_label("music", self.music_slider_rect)
-
         music_toggle_rect = self.draw_toggle(self.screen, self.music_toggle_rect, self.temp_settings["music_enabled"])
         music_knob_rect = self.draw_slider(self.screen, self.music_slider_rect,
                                            self.temp_settings["music_volume"],
                                            self.music_slider_hover, self.dragging_music)
 
         self._draw_row_label("sound_effects", self.sfx_slider_rect)
-
         sfx_toggle_rect = self.draw_toggle(self.screen, self.sfx_toggle_rect, self.temp_settings["sfx_enabled"])
         sfx_knob_rect = self.draw_slider(self.screen, self.sfx_slider_rect,
                                          self.temp_settings["sfx_volume"],
                                          self.sfx_slider_hover, self.dragging_sfx)
 
         self._draw_row_label("control_scheme", self.control_selector_rect)
-
         selected_scheme = self.control_schemes.index(self.temp_settings["control_scheme"])
         control_selector_rect = self.draw_option_selector(self.screen, self.control_selector_rect,
                                                           self.control_schemes, selected_scheme)
 
         self._draw_row_label("language", self.language_selector_rect)
-
         selected_lang = self.languages.index(self.temp_settings["language"])
         language_selector_rect = self.draw_option_selector(self.screen, self.language_selector_rect,
                                                            self.languages, selected_lang)
 
-        self._draw_text_button(self.back_button_rect, "back", self.back_hover)
-        self._draw_text_button(self.apply_button_rect, "apply", self.apply_hover)
+        draw_menu_button(self.screen, self.back_button_rect, get_translation("back"), self.back_hover)
+        draw_menu_button(self.screen, self.apply_button_rect, get_translation("apply"), self.apply_hover,
+                         style='primary')
 
         return {
             "music_toggle": music_toggle_rect,
@@ -264,6 +193,10 @@ class SettingsMenu:
 
         self.prev_back_hover = self.back_hover
         self.prev_apply_hover = self.apply_hover
+
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            self.sound_manager.button_click_sound.play()
+            return 'back'
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if ui_elements["back_button"].collidepoint(mouse_pos):
