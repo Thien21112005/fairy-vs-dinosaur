@@ -1,9 +1,10 @@
 from fairy_vs_dinosaur.entities.ghost import directional, Ghost
+from fairy_vs_dinosaur.ui import theme
 
 
 class Blinky(Ghost):
     def __init__(self, game):
-        super().__init__(game, name="blinky", start_row=12, start_col=15, color=(255, 0, 0))
+        super().__init__(game, name="blinky", start_row=12, start_col=15, color=theme.PATH_BLINKY)
         self.set_elroy_thresholds()
         # Vòng tuần tra góc trên bên phải
         self.scatter_cycle = [

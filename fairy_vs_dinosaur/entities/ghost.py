@@ -5,6 +5,7 @@ import pygame
 from fairy_vs_dinosaur.config import asset
 from fairy_vs_dinosaur.entities.ghost_movement import GhostMovementMixin, OPPOSITE
 from fairy_vs_dinosaur.entities.ghost_render import GhostRenderMixin
+from fairy_vs_dinosaur.ui.widgets import scale_pixel_art
 
 
 def directional(frames):
@@ -70,7 +71,7 @@ class Ghost(GhostMovementMixin, GhostRenderMixin, ABC):
     def _load_frames(self, folder, pattern, count):
         size = (self.ghost_w, self.ghost_h)
         paths = [asset(f"images/dinosaurs/{self.name}/{folder}/{pattern}{i}.png") for i in range(count)]
-        return [pygame.transform.smoothscale(pygame.image.load(p).convert_alpha(), size) for p in paths]
+        return [scale_pixel_art(pygame.image.load(p).convert_alpha(), size) for p in paths]
 
     def _load_animations(self):
         self.normal_animations = directional(self._load_frames("normal", "tile00", 6))
@@ -82,7 +83,7 @@ class Ghost(GhostMovementMixin, GhostRenderMixin, ABC):
         self.relax_frames = self._load_frames("relax", "tile00", 3)
 
         flash = pygame.image.load(asset("images/dinosaurs/flash.png")).convert_alpha()
-        flash = pygame.transform.smoothscale(flash, (self.ghost_w, self.ghost_h))
+        flash = scale_pixel_art(flash, (self.ghost_w, self.ghost_h))
         self.flash_animations = directional([flash])
 
     def set_speed_multipliers(self):

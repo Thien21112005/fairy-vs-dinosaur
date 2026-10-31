@@ -4,10 +4,11 @@ import pygame
 
 from fairy_vs_dinosaur.config import asset
 from fairy_vs_dinosaur.entities.path_drawing import blit_wrapped, draw_arrow_head, LINE_WIDTH
+from fairy_vs_dinosaur.ui.theme import PATH_FAIRY
+from fairy_vs_dinosaur.ui.widgets import scale_pixel_art
 
 START_ROW = 24
 START_COL = 15
-PATH_COLOR = (255, 255, 0)
 
 
 class Player:
@@ -31,12 +32,12 @@ class Player:
     def _load_animations(self, color):
         raw = [pygame.image.load(asset(f"images/fairy/{color}/tile00{i}.png")).convert_alpha() for i in range(8)]
         size = (self.pac_w, self.pac_h)
-        right = [pygame.transform.smoothscale(img, size) for img in raw]
+        right = [scale_pixel_art(img, size) for img in raw]
         return [
             right,
             [pygame.transform.flip(img, True, False) for img in right],
-            [pygame.transform.smoothscale(pygame.transform.rotate(img, 90), size) for img in right],
-            [pygame.transform.smoothscale(pygame.transform.rotate(img, -90), size) for img in right],
+            [pygame.transform.rotate(img, 90) for img in right],
+            [pygame.transform.rotate(img, -90) for img in right],
         ]
 
     def place_at_start(self):
@@ -209,7 +210,7 @@ class Player:
             # Bỏ qua ô hiện tại và đoạn xuyên đường hầm
             is_wrap = abs(c - prev_c) > 1 and r == prev_r
             if (r, c) != (self.row, self.col) and not is_wrap:
-                pygame.draw.line(self.game.screen, PATH_COLOR, prev, point, LINE_WIDTH)
+                pygame.draw.line(self.game.screen, PATH_FAIRY, prev, point, LINE_WIDTH)
             prev = point
             prev_r, prev_c = r, c
 
@@ -218,7 +219,7 @@ class Player:
             step = self.game.path_finder.step_between(*valid_path[-2], *valid_path[-1])
             if step:
                 size = min(self.game.num1_r, self.game.num2_c) / 2
-                draw_arrow_head(self.game.screen, PATH_COLOR, self._cell_center(*valid_path[-1]), step[0], step[1], size)
+                draw_arrow_head(self.game.screen, PATH_FAIRY, self._cell_center(*valid_path[-1]), step[0], step[1], size)
 
     def clear_path(self):
         self.ai_path = []

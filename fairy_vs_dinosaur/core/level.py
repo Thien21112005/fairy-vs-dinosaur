@@ -1,20 +1,33 @@
+import math
+
 import pygame
 
 from fairy_vs_dinosaur.config import asset
 from fairy_vs_dinosaur.core.board import boards
+from fairy_vs_dinosaur.core.board_art import build_board_surface, build_glow_frames, scale_tiles
+from fairy_vs_dinosaur.ui import theme
 
 WALLS = {3, 4, 5, 6, 7, 8, 9}  # 9 là cổng nhà ma
 GHOST_GATE = 9
 GHOST_HOUSE_ROWS = range(14, 17)
 GHOST_HOUSE_COLS = range(12, 18)
+PELLET = 1
+POWER_PELLET = 2
+GLOW_PERIOD_MS = 900
 
 
 class Level:
     def __init__(self, game):
         self.game = game
         item_raw = [pygame.image.load(asset(f"images/tiles/{i}.png")).convert_alpha() for i in range(1, 10)]
-        self.item = [pygame.transform.smoothscale(img, (self.game.num2_c, self.game.num1_r)) for img in item_raw]
+        self.item = scale_tiles(item_raw, (self.game.num2_c, self.game.num1_r))
+        self.power_glow = build_glow_frames((self.game.num2_c * 3, self.game.num1_r * 3), theme.EMBER)
         self.load_board(boards)
+
+    def render_static_board(self, brick):
+        """Sàn và tường không đổi trong suốt màn chơi nên chỉ dựng một lần."""
+        size = (self.game.num2_c * self.game.col, self.game.num1_r * self.game.row)
+        return build_board_surface(brick, boards, self.item, size, self.game.num2_c, self.game.num1_r)
 
     def load_board(self, board_data):
         self.level = [row[:] for row in board_data]
@@ -22,11 +35,17 @@ class Level:
         self.remaining_pellets = self.initial_pellets
 
     def draw_board(self):
+        screen = self.game.screen
+        cell_w, cell_h = self.game.num2_c, self.game.num1_r
+        pulse = (math.sin(pygame.time.get_ticks() * 2 * math.pi / GLOW_PERIOD_MS) + 1) / 2
+        glow = self.power_glow[int(pulse * (len(self.power_glow) - 1))]
         for i, row in enumerate(self.level):
             for j, v in enumerate(row):
-                if 1 <= v <= 9:
-                    self.game.screen.blit(self.item[v - 1],
-                                          (j * self.game.num2_c, i * self.game.num1_r + self.game.y_offset))
+                if v == PELLET or v == POWER_PELLET:
+                    x, y = j * cell_w, i * cell_h + self.game.y_offset
+                    if v == POWER_PELLET:
+                        screen.blit(glow, (x - cell_w, y - cell_h), special_flags=pygame.BLEND_RGB_ADD)
+                    screen.blit(self.item[v - 1], (x, y))
 
     def _in_bounds(self, r, c):
         return 0 <= r < self.game.row and 0 <= c < self.game.col

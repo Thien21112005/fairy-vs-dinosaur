@@ -1,9 +1,10 @@
 from fairy_vs_dinosaur.entities.ghost import Ghost
+from fairy_vs_dinosaur.ui import theme
 
 
 class Pinky(Ghost):
     def __init__(self, game):
-        super().__init__(game, name="pinky", start_row=15, start_col=14, color=(255, 184, 255),
+        super().__init__(game, name="pinky", start_row=15, start_col=14, color=theme.PATH_PINKY,
                          home=(15, 15), release_delay=1000)
         # Vòng tuần tra góc trên bên trái
         self.scatter_cycle = [

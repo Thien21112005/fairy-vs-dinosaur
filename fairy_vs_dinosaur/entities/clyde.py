@@ -3,11 +3,14 @@ import math
 import pygame
 
 from fairy_vs_dinosaur.entities.ghost import Ghost
+from fairy_vs_dinosaur.ui import theme
+
+RANGE_RING_ALPHA = 110
 
 
 class Clyde(Ghost):
     def __init__(self, game):
-        super().__init__(game, name="clyde", start_row=15, start_col=17, color=(255, 165, 0),
+        super().__init__(game, name="clyde", start_row=15, start_col=17, color=theme.PATH_CLYDE,
                          home=(15, 17), release_delay=4000)
         # Vòng tuần tra góc dưới bên trái
         self.scatter_cycle = [
@@ -16,6 +19,7 @@ class Clyde(Ghost):
             (29, 2), (28, 2), (27, 2), (27, 3), (27, 4), (27, 5), (27, 6), (27, 7), (26, 7), (25, 7),
             (24, 7), (24, 8), (24, 9)
         ]
+        self._range_ring = None
 
     def get_chase_target(self):
         # Xa hơn 8 ô thì lấp lối thoát còn trống, gần hơn thì quay về vòng tuần tra để né
@@ -33,4 +37,12 @@ class Clyde(Ghost):
             # Vòng tròn bán kính 8 ô quanh người chơi
             center = (self.game.player.x, self.game.player.y + self.game.y_offset)
             radius = 8 * (self.game.num1_r + self.game.num2_c) / 2
-            pygame.draw.circle(self.game.screen, self.color, center, radius, 2)
+            self._draw_range_ring(center, radius)
+
+    def _draw_range_ring(self, center, radius):
+        """Vòng mờ: chỉ là thông tin phụ, không được át đường đi và nhân vật."""
+        if self._range_ring is None:
+            size = int(radius * 2) + 4
+            self._range_ring = pygame.Surface((size, size), pygame.SRCALPHA)
+            pygame.draw.circle(self._range_ring, (*self.color, RANGE_RING_ALPHA), (size // 2, size // 2), radius, 2)
+        self.game.screen.blit(self._range_ring, self._range_ring.get_rect(center=center))

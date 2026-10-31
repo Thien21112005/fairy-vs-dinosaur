@@ -140,8 +140,8 @@ class PacmanGame(GameInputMixin, GameRenderMixin, GameStatesMixin):
         self.ready_timer = self.sound_manager.intro_sound.get_length() * 1000  # ms
 
     def _load_images(self):
-        background = pygame.image.load(asset("images/tiles/background.jpeg")).convert()
-        self.background = pygame.transform.scale(background, (600, 600))
+        brick = pygame.image.load(asset("images/tiles/background.jpeg")).convert()
+        self.background = self.level.render_static_board(brick)
 
         score_size = (int(self.num2_c * 2.5), int(self.num1_r * 2.5))
         self.score_images = {}

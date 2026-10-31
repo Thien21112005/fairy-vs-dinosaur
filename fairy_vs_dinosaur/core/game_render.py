@@ -1,5 +1,6 @@
 import pygame
 
+from fairy_vs_dinosaur.ui import theme
 from fairy_vs_dinosaur.ui.widgets import get_font
 
 
@@ -7,7 +8,7 @@ class GameRenderMixin:
     """Các cách vẽ khung hình theo từng trạng thái của game."""
 
     def _draw_background(self):
-        self.screen.fill('black')
+        self.screen.fill(theme.NIGHT)
         self.screen.blit(self.background, (0, self.y_offset))
 
     def _draw_visible_ghosts(self):
