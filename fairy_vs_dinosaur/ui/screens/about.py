@@ -2,59 +2,63 @@ import pygame
 
 from fairy_vs_dinosaur.config import asset
 from fairy_vs_dinosaur.i18n import get_translation
-from fairy_vs_dinosaur.ui.widgets import draw_close_button, draw_menu_button
+from fairy_vs_dinosaur.ui import theme
+from fairy_vs_dinosaur.ui.theme import body_font, display_font
+from fairy_vs_dinosaur.ui.widgets import (dimmed_backdrop, draw_close_button, draw_divider, draw_menu_button,
+                                          draw_panel, draw_scrollbar, draw_text, outlined_text)
+
+PANEL_WIDTH = 800
+PANEL_TOP = 22
+BOTTOM_BAR_HEIGHT = 72
+TEXT_WIDTH = 690  # Khoảng 70 ký tự mỗi dòng ở cỡ chữ này: dài hơn sẽ khó đọc
+IMAGE_SIZE = 260
+SCROLL_STEP = 40
+LINE_GAP = 4
 
 
 class AboutMenu:
     def __init__(self, screen, sound_manager, background):
         self.screen = screen
         self.sound_manager = sound_manager
-        self.background = background
+        self.background = dimmed_backdrop(background)
         self.width, self.height = screen.get_size()
         self.timer = pygame.time.Clock()
         self.fps = 60
-
-        self.title_font = pygame.font.SysFont('Arial', 48, bold=True)
-        self.section_font = pygame.font.SysFont('Arial', 32, bold=True)
-        self.text_font = pygame.font.SysFont('Arial', 20)
-        self.button_font = pygame.font.SysFont('Arial', 28, bold=True)
-
-        self.text_color = (255, 255, 255)
-        self.shadow_color = (0, 0, 0)
-        self.section_color = (220, 160, 50)
-        self.bg_color = (30, 30, 50, 220)
 
         self.images = []
         for i in range(1, 4):
             img_path = asset(f"images/menu/{i}.png")
             try:
                 img = pygame.image.load(img_path).convert_alpha()
-                self.images.append(pygame.transform.scale(img, (200, 200)))
+                self.images.append(pygame.transform.smoothscale(img, (IMAGE_SIZE, IMAGE_SIZE)))
             except (pygame.error, FileNotFoundError):
                 print(f"Không thể load hình {img_path}")
 
-        button_width = 200
-        button_height = 60
-        self.back_rect = pygame.Rect(self.width // 2 - button_width // 2, self.height - 100, button_width, button_height)
+        button_y = self.height - BOTTOM_BAR_HEIGHT + (BOTTOM_BAR_HEIGHT - 46) // 2
+        self.back_rect = pygame.Rect(self.width // 2 - 110, button_y, 220, 46)
         self.back_hover = False
         self.prev_back_hover = False
 
-        self.close_rect = pygame.Rect(self.width - 45, 15, 35, 35)
+        self.close_rect = pygame.Rect(self.width - 46, 14, 36, 36)
         self.close_hover = False
         self.prev_close_hover = False
 
         self.title = get_translation("about_title")
         # Mỗi phần: (tiêu đề hoặc None, các đoạn văn, khoảng cách sau đoạn, chỉ số ảnh chèn sau phần hoặc None)
         self.sections = [
-            (None, self._texts("overview", 2), 20, 0),
+            (None, self._texts("overview", 2), 16, 0),
             (get_translation("key_features_title"), self._texts("key_feature", 9), 10, 1),
             (get_translation("team_title"), self._texts("team", 5), 10, 2),
-            (get_translation("join_title"), self._texts("join", 1), 20, None),
+            (get_translation("join_title"), self._texts("join", 1), 16, None),
         ]
 
+        self.panel_rect = pygame.Rect((self.width - PANEL_WIDTH) // 2, PANEL_TOP, PANEL_WIDTH,
+                                      self.height - PANEL_TOP - BOTTOM_BAR_HEIGHT)
+        self.view_rect = self.panel_rect.inflate(-8, -8)
+
         self.scroll_y = 0
-        self.max_scroll = 0
-        self.view_rect = pygame.Rect(50, 50, self.width - 100, self.height - 150)
+        self.content = self._build_content()
+        self.max_scroll = max(0, self.content.get_height() - self.view_rect.height)
 
     @staticmethod
     def _texts(prefix, count):
@@ -75,66 +79,60 @@ class AboutMenu:
             lines.append(current_line.strip())
         return lines
 
-    def calculate_content_height(self):
-        wrap_width = self.view_rect.width - 40
+    def _layout_content(self):
+        """Danh sách (Surface, x, y) và chiều cao tổng, để văn bản dài chỉ phải dàn trang một lần."""
+        items = []
+        center_x = self.view_rect.width // 2
+        left = center_x - TEXT_WIDTH // 2
 
-        def block_height(text, font, spacing):
-            lines = self.wrap_text(text, font, wrap_width)
-            return len(lines) * font.get_height() + (len(lines) - 1) * 5 + spacing
+        title = outlined_text(self.title, display_font(38), theme.STONE, theme.COPPER_DARK)
+        items.append((title, center_x - title.get_width() // 2, 18))
+        y = 18 + title.get_height() + 40
 
-        y_pos = 20 + block_height(self.title, self.title_font, 30)
+        text_font = body_font(20)
+        heading_font = display_font(27)
         for heading, paragraphs, spacing, image_index in self.sections:
             if heading:
-                y_pos += block_height(heading, self.section_font, 10)
-            for para in paragraphs:
-                y_pos += block_height(para, self.text_font, spacing)
+                y += 14
+                rendered = heading_font.render(heading, True, theme.COPPER_LIGHT)
+                items.append((rendered, left, y))
+                y += rendered.get_height() + 6
+            for paragraph in paragraphs:
+                for line in self.wrap_text(paragraph, text_font, TEXT_WIDTH):
+                    rendered = text_font.render(line, True, theme.PARCHMENT)
+                    items.append((rendered, left, y))
+                    y += rendered.get_height() + LINE_GAP
+                y += spacing
             if image_index is not None and image_index < len(self.images):
-                y_pos += self.images[image_index].get_height() + 30
-        return y_pos + 100
+                image = self.images[image_index]
+                items.append((self._framed(image), center_x - image.get_width() // 2 - 3, y + 6))
+                y += image.get_height() + 30
+        return items, y + 24
 
-    def _draw_paragraph(self, surface, text, y):
-        for line in self.wrap_text(text, self.text_font, self.view_rect.width - 40):
-            rendered = self.text_font.render(line, True, self.text_color)
-            surface.blit(self.text_font.render(line, True, self.shadow_color), (21, y + 1))
-            surface.blit(rendered, (20, y))
-            y += rendered.get_height() + 5
-        return y
+    @staticmethod
+    def _framed(image):
+        framed = pygame.Surface((image.get_width() + 6, image.get_height() + 6))
+        framed.fill(theme.NIGHT)
+        pygame.draw.rect(framed, theme.COPPER, framed.get_rect(), width=2)
+        framed.blit(image, (3, 3))
+        return framed
 
-    def _draw_heading(self, surface, text, font, y, centered=False, shadow_offset=1):
-        content_width = self.view_rect.width
-        lines = self.wrap_text(text, font, content_width - 40)
-        for i, line in enumerate(lines):
-            rendered = font.render(line, True, self.section_color)
-            x = content_width // 2 - rendered.get_width() // 2 if centered else 20
-            line_y = y + i * (font.get_height() + 5)
-            surface.blit(font.render(line, True, self.shadow_color), (x + shadow_offset, line_y + shadow_offset))
-            surface.blit(rendered, (x, line_y))
-        return y + len(lines) * font.get_height() + (len(lines) - 1) * 5
+    def _build_content(self):
+        items, height = self._layout_content()
+        content = pygame.Surface((self.view_rect.width, height), pygame.SRCALPHA)
+        for surface, x, y in items:
+            content.blit(surface, (x, y))
+        divider_y = 18 + display_font(38).get_height() + 16
+        draw_divider(content, (self.view_rect.width // 2, divider_y), 360)
+        return content
 
     def draw_content(self):
-        content_width = self.view_rect.width
-        surface = pygame.Surface((content_width, self.calculate_content_height() + 100), pygame.SRCALPHA)
-        surface.fill((0, 0, 0, 0))
-
-        y_pos = self._draw_heading(surface, self.title, self.title_font, 20, centered=True, shadow_offset=2) + 30
-        for heading, paragraphs, spacing, image_index in self.sections:
-            if heading:
-                y_pos = self._draw_heading(surface, heading, self.section_font, y_pos) + 10
-            for para in paragraphs:
-                y_pos = self._draw_paragraph(surface, para, y_pos) + spacing
-            if image_index is not None and image_index < len(self.images):
-                img = self.images[image_index]
-                surface.blit(img, (content_width // 2 - img.get_width() // 2, y_pos))
-                y_pos += img.get_height() + 30
-
-        self.max_scroll = max(0, y_pos + 20 - self.view_rect.height)
-
-        view_bg = pygame.Surface(self.view_rect.size, pygame.SRCALPHA)
-        pygame.draw.rect(view_bg, self.bg_color, (0, 0, self.view_rect.width, self.view_rect.height), border_radius=20)
-        self.screen.blit(view_bg, self.view_rect.topleft)
-
-        blit_area = pygame.Rect(0, self.scroll_y, self.view_rect.width, self.view_rect.height)
-        self.screen.blit(surface, self.view_rect.topleft, area=blit_area)
+        draw_panel(self.screen, self.panel_rect)
+        area = pygame.Rect(0, self.scroll_y, self.view_rect.width, self.view_rect.height)
+        self.screen.blit(self.content, self.view_rect.topleft, area=area)
+        track = pygame.Rect(self.view_rect.right - 12, self.view_rect.y + 10, 6, self.view_rect.height - 20)
+        draw_scrollbar(self.screen, track, self.scroll_y, self.max_scroll,
+                       self.view_rect.height / self.content.get_height())
 
     def draw_back_button(self):
         draw_menu_button(self.screen, self.back_rect, get_translation("back"), self.back_hover)
@@ -155,17 +153,27 @@ class AboutMenu:
         self.close_hover = current_close_hover
         self.prev_close_hover = current_close_hover
 
+    def _scroll_by(self, amount):
+        self.scroll_y = max(0, min(self.scroll_y + amount, self.max_scroll))
+
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return False
+                if event.key == pygame.K_DOWN:
+                    self._scroll_by(SCROLL_STEP)
+                elif event.key == pygame.K_UP:
+                    self._scroll_by(-SCROLL_STEP)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
                 if self.back_rect.collidepoint(mouse_pos) or self.close_rect.collidepoint(mouse_pos):
                     self.sound_manager.button_click_sound.play()
                     return False
             elif event.type == pygame.MOUSEWHEEL:
-                self.scroll_y = max(0, min(self.scroll_y - event.y * 20, self.max_scroll))
+                self._scroll_by(-event.y * SCROLL_STEP)
         return True
 
     def run(self):
