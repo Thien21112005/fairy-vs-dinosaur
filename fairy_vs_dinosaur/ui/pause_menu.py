@@ -2,6 +2,7 @@ import pygame
 
 from fairy_vs_dinosaur.i18n import get_translation
 from fairy_vs_dinosaur.ui.overlay_menu import OverlayMenu
+from fairy_vs_dinosaur.ui.widgets import draw_slab_button
 
 CONFIRM_RESTART = 1
 CONFIRM_MAIN_MENU = 2
@@ -15,7 +16,7 @@ class PauseMenu(OverlayMenu):
         self.visible = False
         self.pause_button_hover = False
         self.prev_pause_button_hover = False
-        self.pause_button_rect = pygame.Rect(self.game.width - 50, 10, 40, 40)
+        self.pause_button_rect = pygame.Rect(self.game.width - 48, 5, 40, 40)
 
     def _build_buttons(self):
         return [
@@ -34,45 +35,12 @@ class PauseMenu(OverlayMenu):
 
     def draw_pause_button(self, screen):
         """Vẽ nút pause nhỏ ở góc phải"""
-        if self.pause_button_hover:
-            colors = {'bg': (255, 215, 0), 'bg_dark': (235, 195, 0), 'border': (255, 255, 150)}
-        else:
-            colors = {'bg': (80, 80, 140), 'bg_dark': (60, 60, 120), 'border': (100, 160, 200)}
-
-        pygame.draw.rect(screen, (0, 0, 0, 100), self.pause_button_rect.move(2, 2), border_radius=12)
-
-        width, height = self.pause_button_rect.size
-        button_surface = pygame.Surface((width, height), pygame.SRCALPHA)
-        for y in range(height):
-            ratio = y / height
-            color = (
-                int(colors['bg'][0] * (1 - ratio) + colors['bg_dark'][0] * ratio),
-                int(colors['bg'][1] * (1 - ratio) + colors['bg_dark'][1] * ratio),
-                int(colors['bg'][2] * (1 - ratio) + colors['bg_dark'][2] * ratio)
-            )
-            pygame.draw.line(button_surface, color, (0, y), (width, y))
-
-        mask = pygame.Surface((width, height), pygame.SRCALPHA)
-        pygame.draw.rect(mask, (255, 255, 255, 255), (0, 0, width, height), border_radius=10)
-        button_surface.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
-        screen.blit(button_surface, self.pause_button_rect.topleft)
-
-        pygame.draw.rect(screen, colors['border'], self.pause_button_rect, width=3, border_radius=10)
-        self._draw_pause_icon(screen)
-
-    def _draw_pause_icon(self, screen):
-        bar_width = 6
-        bar_height = 22
-        bar_spacing = 5
-
-        left_bar_x = self.pause_button_rect.centerx - bar_width - bar_spacing // 2
-        right_bar_x = self.pause_button_rect.centerx + bar_spacing // 2
-        bar_y = self.pause_button_rect.centery - bar_height // 2
-
-        pygame.draw.rect(screen, (50, 50, 50, 100), (left_bar_x + 1, bar_y + 1, bar_width, bar_height))
-        pygame.draw.rect(screen, (50, 50, 50, 100), (right_bar_x + 1, bar_y + 1, bar_width, bar_height))
-        pygame.draw.rect(screen, (255, 255, 255), (left_bar_x, bar_y, bar_width, bar_height))
-        pygame.draw.rect(screen, (255, 255, 255), (right_bar_x, bar_y, bar_width, bar_height))
+        colors = draw_slab_button(screen, self.pause_button_rect, 'active' if self.pause_button_hover else 'normal')
+        bar_width, bar_height, gap = 5, 16, 5
+        top = self.pause_button_rect.centery - bar_height // 2
+        left = self.pause_button_rect.centerx - bar_width - gap // 2
+        pygame.draw.rect(screen, colors['text'], (left, top, bar_width, bar_height))
+        pygame.draw.rect(screen, colors['text'], (left + bar_width + gap, top, bar_width, bar_height))
 
     def draw(self, screen):
         if self.visible:

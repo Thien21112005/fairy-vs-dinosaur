@@ -1,15 +1,19 @@
 import pygame
 
 from fairy_vs_dinosaur.ui import theme
-from fairy_vs_dinosaur.ui.widgets import get_font
+from fairy_vs_dinosaur.ui.widgets import outlined_text
 
 
 class GameRenderMixin:
     """Các cách vẽ khung hình theo từng trạng thái của game."""
 
+    _countdown_dim = None
+    _countdown_digits = {}
+
     def _draw_background(self):
         self.screen.fill(theme.NIGHT)
         self.screen.blit(self.background, (0, self.y_offset))
+        self.ui.draw_footer()
 
     def _draw_visible_ghosts(self):
         for ghost in self.visible_ghosts():
@@ -66,34 +70,22 @@ class GameRenderMixin:
 
     def _draw_countdown_number(self, count):
         progress = 1.0 - (self.countdown_timer % 1.0)  # 0.0 -> 1.0 trong mỗi giây
-        scale = 1.0 + progress * 0.3
-        alpha = int(255 * (1 - progress * 0.8))
-        size = int(120 * scale)
-        font = get_font('Arial', size, bold=True)
-        center = (size, size)
-        base_color = (0, 255, 255)
-        bright_color = (100, 255, 255)
+        scale = 1.0 + 0.35 * (1.0 - progress) ** 3  # Đập mạnh rồi lắng xuống
+        alpha = 255 if progress < 0.7 else int(255 * (1.0 - progress) / 0.3)
 
-        text_surface = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
+        if GameRenderMixin._countdown_dim is None:
+            GameRenderMixin._countdown_dim = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+            GameRenderMixin._countdown_dim.fill((*theme.NIGHT, 130))
+        self.screen.blit(self._countdown_dim, (0, 0))
 
-        glow_radius = int(20 * scale)
-        for r in range(glow_radius, 0, -2):
-            glow_alpha = int(50 * (r / glow_radius) * (alpha / 255))
-            pygame.draw.circle(text_surface, (*bright_color, glow_alpha), center, size + r)
-
-        shadow = font.render(str(count), True, (0, 50, 100))
-        shadow.set_alpha(alpha // 2)
-        text_surface.blit(shadow, shadow.get_rect(center=(size + 4, size + 4)))
-
-        main_text = font.render(str(count), True, base_color)
-        main_text.set_alpha(alpha)
-        text_surface.blit(main_text, main_text.get_rect(center=center))
-
-        highlight = font.render(str(count), True, bright_color)
-        highlight.set_alpha(min(alpha, 200))
-        text_surface.blit(highlight, highlight.get_rect(center=(size - 2, size - 2)))
-
-        self.screen.blit(text_surface, text_surface.get_rect(center=(self.width // 2, self.height // 2)))
+        if count not in self._countdown_digits:
+            self._countdown_digits[count] = outlined_text(str(count), theme.display_font(150), theme.STONE,
+                                                          theme.COPPER_DARK, width=4)
+        digit = self._countdown_digits[count]
+        size = (int(digit.get_width() * scale), int(digit.get_height() * scale))
+        scaled = pygame.transform.smoothscale(digit, size)
+        scaled.set_alpha(alpha)
+        self.screen.blit(scaled, scaled.get_rect(center=(self.width // 2, self.height // 2)))
 
     def _draw_level_anim_frame(self):
         self._draw_background()

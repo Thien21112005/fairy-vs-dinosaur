@@ -2,18 +2,32 @@ import pygame
 
 from fairy_vs_dinosaur.config import asset
 from fairy_vs_dinosaur.i18n import get_translation
+from fairy_vs_dinosaur.ui import theme
 from fairy_vs_dinosaur.ui.game_over import GameOverScreen
-from fairy_vs_dinosaur.ui.widgets import draw_gradient_rect, draw_soft_rect, get_font
+from fairy_vs_dinosaur.ui.theme import fit_font, label_font, strong_font
+from fairy_vs_dinosaur.ui.widgets import (BUTTON_STYLES, chamfered_slab, draw_slab_button, draw_text, outlined_text,
+                                          scale_pixel_art)
 
 SOLVE_OPTIONS = ["BFS", "DFS", "UCS", "ASTAR", "GREEDY", "HILL CLIMBING", "BEAM", "EXPECTIMAX", "MCTS"]
+DINOSAURS = ["blinky", "pinky", "inky", "clyde"]
+
+BAR_PADDING = 12
+BUTTON_SIZE = 40
+BUTTON_GAP = 6
+GROUP_GAP = 12
+LIFE_ICON_SIZE = 32
+PORTRAIT_SIZE = 32
+OPTION_HEIGHT = 30
+DROPDOWN_PADDING = 7
+STAT_LABEL_Y = 14
+STAT_VALUE_Y = 33
 
 
 class UI:
     def __init__(self, game):
         self.game = game
-        self.font = pygame.font.SysFont('monospace', 20, bold=True)
         lives_icon_raw = pygame.image.load(asset("images/fairy/blue/tile003.png")).convert_alpha()
-        self.lives_icon = pygame.transform.smoothscale(lives_icon_raw, (self.game.pac_w, self.game.pac_h))
+        self.lives_icon = scale_pixel_art(lives_icon_raw, (LIFE_ICON_SIZE, LIFE_ICON_SIZE))
         self.hint_hover = False
         self.ghost_hover = [False] * 4  # Blinky, Pinky, Inky, Clyde
         self.show_blinky = True
@@ -22,175 +36,167 @@ class UI:
         self.show_clyde = True
 
         self.game_over = GameOverScreen(game)
-        self.ghost_colors = [
-            (255, 0, 0),  # Blinky
-            (255, 184, 255),  # Pinky
-            (0, 255, 255),  # Inky
-            (255, 165, 0)  # Clyde
-        ]
-        self.ghost_labels = ["B", "P", "I", "C"]
+        self.portraits, self.hidden_portraits = self._load_portraits()
 
-        button_y = self.game.height - self.game.bottom_offset + 10
-        button_width = 40
-        spacing = 10
-        hint_width = 80
-        solve_width = 120
-        total_width = 4 * button_width + 3 * spacing + spacing * 2 + hint_width + solve_width
-        current_x = self.game.width // 2 - total_width // 2
+        self.footer_y = game.y_offset + game.num1_r * game.row
+        self.header_bar = self._build_bar(game.y_offset, hairline_y=game.y_offset - 1)
+        self.footer_bar = self._build_bar(game.height - self.footer_y, hairline_y=0)
+
+        button_y = self.footer_y + (game.height - self.footer_y - BUTTON_SIZE) // 2
+        current_x = BAR_PADDING + 2 * LIFE_ICON_SIZE + GROUP_GAP + 8
 
         self.ghost_rects = []
-        for _ in range(4):
-            self.ghost_rects.append(pygame.Rect(current_x, button_y, button_width, 25))
-            current_x += button_width + spacing
+        for _ in DINOSAURS:
+            self.ghost_rects.append(pygame.Rect(current_x, button_y, BUTTON_SIZE, BUTTON_SIZE))
+            current_x += BUTTON_SIZE + BUTTON_GAP
+        current_x += GROUP_GAP - BUTTON_GAP
 
-        self.hint_rect = pygame.Rect(current_x, button_y, hint_width, 25)
-        current_x += hint_width + spacing
-        self.solve_rect = pygame.Rect(current_x, button_y, solve_width, 25)
+        self.hint_rect = pygame.Rect(current_x, button_y, 84, BUTTON_SIZE)
+        current_x += self.hint_rect.width + BUTTON_GAP
+        self.solve_rect = pygame.Rect(current_x, button_y, game.width - BAR_PADDING - current_x, BUTTON_SIZE)
 
         self.solve_hover = False
         self.solve_menu_visible = False
         self.solve_options = SOLVE_OPTIONS
         self.solve_option_hover = [False] * len(self.solve_options)
-        self.solve_option_rects = []
+        self.dropdown_rect = self._dropdown_rect()
+        self.solve_option_rects = [
+            pygame.Rect(self.dropdown_rect.x + DROPDOWN_PADDING,
+                        self.dropdown_rect.y + DROPDOWN_PADDING + i * OPTION_HEIGHT,
+                        self.dropdown_rect.width - 2 * DROPDOWN_PADDING, OPTION_HEIGHT)
+            for i in range(len(self.solve_options))
+        ]
         self.selected_solve = None
+        self._ready_text = {}
+
+    @staticmethod
+    def _load_portraits():
+        """Sprite đã vẽ của từng khủng long làm mặt nút, bản xám khi đang ẩn con đó."""
+        shown, hidden = [], []
+        size = (PORTRAIT_SIZE, PORTRAIT_SIZE)
+        for name in DINOSAURS:
+            raw = pygame.image.load(asset(f"images/dinosaurs/{name}/normal/tile000.png")).convert_alpha()
+            portrait = scale_pixel_art(raw, size)
+            shown.append(portrait)
+            faded = pygame.transform.grayscale(portrait)
+            faded.fill((150, 150, 150, 255), special_flags=pygame.BLEND_RGBA_MULT)
+            hidden.append(faded)
+        return shown, hidden
+
+    def _build_bar(self, height, hairline_y):
+        """Thanh đá trên và dưới bản đồ, ngăn với bản đồ bằng một đường đồng."""
+        bar = pygame.Surface((self.game.width, height))
+        for y in range(height):
+            ratio = y / max(1, height - 1)
+            color = [int(theme.PANEL_TOP[i] + (theme.PANEL_BOTTOM[i] - theme.PANEL_TOP[i]) * ratio) for i in range(3)]
+            pygame.draw.line(bar, color, (0, y), (self.game.width, y))
+        pygame.draw.line(bar, theme.COPPER, (0, hairline_y), (self.game.width, hairline_y))
+        return bar
+
+    def _dropdown_rect(self):
+        height = len(SOLVE_OPTIONS) * OPTION_HEIGHT + 2 * DROPDOWN_PADDING
+        return pygame.Rect(self.solve_rect.x, self.solve_rect.y - height - BUTTON_GAP, self.solve_rect.width, height)
 
     def visible_ghost_flags(self):
         return [self.show_blinky, self.show_pinky, self.show_inky, self.show_clyde]
 
+    def _draw_stat(self, center_x, label, value):
+        screen = self.game.screen
+        max_width = self.game.width // 3 - 24
+        draw_text(screen, label, fit_font(label_font, label, max_width, 15), theme.COPPER_LIGHT,
+                  center=(center_x, STAT_LABEL_Y))
+        draw_text(screen, value, strong_font(23), theme.PARCHMENT, center=(center_x, STAT_VALUE_Y))
+
     def draw_header(self):
         screen = self.game.screen
-        white = (255, 255, 255)
-
-        screen.blit(self.font.render(get_translation("1up"), True, white), (self.game.width // 4 - 60, 10))
-        screen.blit(self.font.render(f"{self.game.score:06d}", True, white), (self.game.width // 4 - 60, 30))
-
-        text_high = self.font.render(get_translation("high_score"), True, white)
-        screen.blit(text_high, (self.game.width // 2 - text_high.get_width() // 2, 10))
-        high_score_text = self.font.render(f"{self.game.high_score:06d}", True, white)
-        screen.blit(high_score_text, (self.game.width // 2 - high_score_text.get_width() // 2, 30))
+        screen.blit(self.header_bar, (0, 0))
 
         minutes = int(self.game.play_time // 60000)
         seconds = int((self.game.play_time // 1000) % 60)
         milliseconds = int(self.game.play_time % 1000)
-        screen.blit(self.font.render(get_translation("time"), True, white), (3 * self.game.width // 4 - 30, 10))
-        screen.blit(self.font.render(f"{minutes:02d}:{seconds:02d}.{milliseconds:03d}", True, white),
-                    (3 * self.game.width // 4 - 50, 30))
+        column = (self.game.width - 56) // 3
+        self._draw_stat(column // 2, get_translation("1up"), f"{self.game.score:06d}")
+        self._draw_stat(column + column // 2, get_translation("high_score"), f"{self.game.high_score:06d}")
+        self._draw_stat(2 * column + column // 2, get_translation("time"),
+                        f"{minutes:02d}:{seconds:02d}.{milliseconds:03d}")
 
         self.game.pause_menu.draw_pause_button(screen)
 
+    def draw_footer(self):
+        self.game.screen.blit(self.footer_bar, (0, self.footer_y))
+
     def draw_ready(self):
         if self.game.show_ready:
-            ready_text = self.font.render(get_translation("ready"), True, (255, 255, 0))
-            text_w, text_h = ready_text.get_size()
-            ready_y = 18 * self.game.num1_r + self.game.y_offset + self.game.num1_r // 2 - text_h // 2
-            self.game.screen.blit(ready_text, (self.game.width // 2 - text_w // 2, ready_y))
+            text = get_translation("ready")
+            if text not in self._ready_text:
+                self._ready_text[text] = outlined_text(text, theme.display_font(26), theme.FLAME, theme.NIGHT)
+            ready_y = 18 * self.game.num1_r + self.game.y_offset + self.game.num1_r // 2
+            image = self._ready_text[text]
+            self.game.screen.blit(image, image.get_rect(center=(self.game.width // 2, ready_y)))
 
     def draw_lives(self):
-        base_y = self.game.height - self.game.bottom_offset - 10
+        icon_y = self.footer_y + (self.game.height - self.footer_y - LIFE_ICON_SIZE) // 2
         for i in range(self.game.lives - 1):
-            self.game.screen.blit(self.lives_icon, (20 + i * (self.game.pac_w + 5), base_y + 15))
+            self.game.screen.blit(self.lives_icon, (BAR_PADDING + i * LIFE_ICON_SIZE, icon_y))
 
     def draw_hint_button(self):
-        screen = self.game.screen
-        glow_rect = self.hint_rect.inflate(4, 4)
-        if self.game.show_hint:
-            start, end, border, text_color = (255, 255, 150), (255, 165, 0), (255, 255, 100), (0, 0, 0)
-            draw_gradient_rect(screen, self.hint_rect, start, end, border_radius=10)
-            draw_soft_rect(screen, glow_rect, (255, 255, 150, 128), border_radius=12)
-        else:
-            text_color = (255, 255, 255)
-            if self.hint_hover:
-                start, end, border = (120, 200, 255), (70, 130, 180), (150, 200, 255)
-                draw_soft_rect(screen, glow_rect, (150, 150, 200, 128), border_radius=12)
-            else:
-                start, end, border = (70, 130, 180), (50, 50, 80), (100, 100, 160)
-            draw_gradient_rect(screen, self.hint_rect, start, end, border_radius=10)
-
-        pygame.draw.rect(screen, border, self.hint_rect, width=3, border_radius=10)
-        hint_text = self.font.render("HINT", True, text_color)
-        screen.blit(hint_text, hint_text.get_rect(center=self.hint_rect.center))
+        style = 'active' if self.game.show_hint or self.hint_hover else 'normal'
+        colors = draw_slab_button(self.game.screen, self.hint_rect, style)
+        draw_text(self.game.screen, "HINT", label_font(21), colors['text'], center=self.hint_rect.center)
 
     def draw_ghost_toggle_buttons(self):
         screen = self.game.screen
         for i, rect in enumerate(self.ghost_rects):
-            color = self.ghost_colors[i]
-            if self.visible_ghost_flags()[i]:
-                start = tuple(min(255, c + 50) for c in color)
-                end = color
-                border = tuple(min(255, c + 100) for c in color)
-                text_color = (0, 0, 0) if sum(color) > 400 else (255, 255, 255)
-            else:
-                start, end, border, text_color = (150, 150, 150), (100, 100, 100), (200, 200, 200), (255, 255, 255)
-
+            shown = self.visible_ghost_flags()[i]
             if self.ghost_hover[i]:
-                draw_soft_rect(screen, rect.inflate(6, 6), (255, 255, 255, 100), border_radius=10)
-                start = tuple(min(255, c + 30) for c in start)
-                end = tuple(min(255, c + 30) for c in end)
+                style = 'active'
+            else:
+                style = 'normal' if shown else 'off'
+            draw_slab_button(screen, rect, style)
+            portrait = self.portraits[i] if shown else self.hidden_portraits[i]
+            screen.blit(portrait, portrait.get_rect(center=rect.center))
+            if not shown:
+                pygame.draw.line(screen, theme.PARCHMENT, (rect.x + 9, rect.bottom - 10), (rect.right - 10, rect.y + 9), 2)
 
-            draw_gradient_rect(screen, rect, start, end, border_radius=8)
-            pygame.draw.rect(screen, border, rect, width=2, border_radius=8)
-            label_text = self.font.render(self.ghost_labels[i], True, text_color)
-            screen.blit(label_text, label_text.get_rect(center=rect.center))
-
-    def _fit_font(self, text, max_width, start_size, min_size):
-        """Font mặc định nếu chữ vừa, nếu không thì giảm cỡ dần tới khi vừa."""
-        if self.font.size(text)[0] <= max_width:
-            return self.font
-        size = start_size
-        font = get_font('monospace', size, bold=True)
-        while size > min_size and font.size(text)[0] > max_width:
-            size -= 1
-            font = get_font('monospace', size, bold=True)
-        return font
+    def _solve_style(self):
+        if self.solve_menu_visible or (self.solve_hover and not self.game.solve_locked):
+            return 'active'
+        if self.game.solve_locked and not self.selected_solve:
+            return 'off'  # Đang chơi tay: nút giải đã khóa cho ván này
+        return 'normal'
 
     def draw_solve_button(self):
         screen = self.game.screen
-        if self.solve_menu_visible:
-            start, end, border, text_color = (255, 230, 100), (255, 150, 0), (255, 255, 150), (0, 0, 0)
-            draw_soft_rect(screen, self.solve_rect.inflate(6, 6), (255, 220, 50, 180), border_radius=12)
-        else:
-            text_color = (255, 255, 255)
-            if self.solve_hover:
-                start, end, border = (140, 210, 255), (80, 140, 200), (170, 220, 255)
-                draw_soft_rect(screen, self.solve_rect.inflate(4, 4), (100, 180, 255, 150), border_radius=12)
-            else:
-                start, end, border = (80, 140, 200), (40, 60, 100), (120, 160, 220)
-
-        draw_gradient_rect(screen, self.solve_rect, start, end, border_radius=10)
-        pygame.draw.rect(screen, border, self.solve_rect, width=3, border_radius=10)
+        colors = draw_slab_button(screen, self.solve_rect, self._solve_style())
 
         label = self.selected_solve.upper() if self.selected_solve else "SOLVE"
-        font = self._fit_font(label, self.solve_rect.width - 15, 16, 10)
-        solve_text = font.render(label, True, text_color)
-        screen.blit(solve_text, solve_text.get_rect(center=self.solve_rect.center))
+        can_open = not self.game.solve_locked
+        text_area = self.solve_rect.width - (44 if can_open else 24)
+        font = fit_font(label_font, label, text_area, 21)
+        draw_text(screen, label, font, colors['text'], center=self.solve_rect.center)
+        if can_open:
+            self._draw_chevron(colors['text'])
 
         if self.solve_menu_visible:
             self._draw_solve_dropdown()
 
+    def _draw_chevron(self, color):
+        x, y = self.solve_rect.right - 20, self.solve_rect.centery
+        pygame.draw.lines(self.game.screen, color, False, [(x - 5, y + 3), (x, y - 3), (x + 5, y + 3)], 2)
+
     def _draw_solve_dropdown(self):
         screen = self.game.screen
-        total_height = len(self.solve_options) * 32
+        slab = chamfered_slab(self.dropdown_rect.size, (theme.PANEL_TOP, theme.PANEL_BOTTOM),
+                              (theme.COPPER_LIGHT, theme.COPPER_DARK))
+        screen.blit(slab, self.dropdown_rect.topleft)
 
-        shadow_surface = pygame.Surface((154, total_height + 4), pygame.SRCALPHA)
-        pygame.draw.rect(shadow_surface, (0, 0, 0, 80), pygame.Rect(0, 0, 154, total_height + 4), border_radius=10)
-        screen.blit(shadow_surface, (self.solve_rect.x - 2, self.solve_rect.y - total_height - 2))
-
-        dropdown = pygame.Surface((150, total_height), pygame.SRCALPHA)
-        draw_gradient_rect(dropdown, pygame.Rect(0, 0, 150, total_height), (60, 80, 120, 240), (30, 40, 70, 240),
-                           border_color=(100, 140, 200, 255), border_width=2, border_radius=8)
-        screen.blit(dropdown, (self.solve_rect.x, self.solve_rect.y - total_height))
-
-        self.solve_option_rects = []
+        active = BUTTON_STYLES['active']
         for i, option in enumerate(self.solve_options):
-            opt_rect = pygame.Rect(self.solve_rect.x, self.solve_rect.y - (i + 1) * 32, 150, 30)
-            self.solve_option_rects.append(opt_rect)
-
-            option_color = (100, 160, 220, 200) if self.solve_option_hover[i] else (80, 120, 180, 200)
-            draw_soft_rect(screen, opt_rect, option_color, border_radius=6)
-
-            font = self._fit_font(option, opt_rect.width - 15, 14, 8)
-            opt_text = font.render(option, True, (255, 255, 255))
-            screen.blit(opt_text, opt_text.get_rect(center=opt_rect.center))
+            rect = self.solve_option_rects[i]
+            if self.solve_option_hover[i]:
+                screen.blit(chamfered_slab(rect.size, active['fill'], active['edge'], chamfer=5, edge_width=1), rect)
+            color = active['text'] if self.solve_option_hover[i] else theme.PARCHMENT
+            draw_text(screen, option, label_font(19), color, center=rect.center)
 
     def update_hover(self, mouse_pos):
         hover_sound = self.game.sound_manager.button_hover_sound

@@ -163,13 +163,13 @@ class LevelCompleteAnimation:
         if self.direction == 'left':
             pac_img = pygame.transform.flip(pac_img, True, False)
 
-        scaled_pac = pygame.transform.scale(pac_img, (int(self.game.pac_w), int(self.game.pac_h)))
+        scaled_pac = pygame.transform.smoothscale(pac_img, (int(self.game.pac_w), int(self.game.pac_h)))
         self.game.screen.blit(scaled_pac, (int(self.game.player.x - self.game.pac_w / 2),
                                            int(self.game.player.y + self.game.y_offset - self.game.pac_h / 2)))
 
         if self.state != 'gong' and (self.state != 'blink_fireball' or self.blink_visible):
             size = int(20 * self.fireball_scale)
-            scaled_fb = pygame.transform.scale(self.fireball_imgs[self.fireball_frame], (size, size))
+            scaled_fb = pygame.transform.smoothscale(self.fireball_imgs[self.fireball_frame], (size, size))
             self.game.screen.blit(scaled_fb, scaled_fb.get_rect(center=(int(self.fireball_x), int(self.fireball_y))))
 
 

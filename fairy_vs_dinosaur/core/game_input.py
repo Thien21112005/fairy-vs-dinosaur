@@ -55,9 +55,6 @@ class GameInputMixin:
 
         if not self.solve_locked and ui.solve_rect.collidepoint(mouse_pos):
             ui.solve_menu_visible = not ui.solve_menu_visible
-            if ui.solve_menu_visible:
-                ui.solve_option_rects = [pygame.Rect(ui.solve_rect.x, ui.solve_rect.y - (i + 1) * 30, 80, 25)
-                                         for i in range(len(ui.solve_options))]
             self.sound_manager.button_click_sound.play()
         elif ui.solve_menu_visible and not ui.solve_rect.collidepoint(mouse_pos) and not any(
                 rect.collidepoint(mouse_pos) for rect in ui.solve_option_rects):
