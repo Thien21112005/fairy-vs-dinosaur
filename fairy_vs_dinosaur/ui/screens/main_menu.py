@@ -50,7 +50,7 @@ class MainMenu:
 
     def draw_buttons(self):
         for i, button in enumerate(self.buttons):
-            draw_menu_button(self.screen, button["rect"], button["text"], self.button_font, self.hover_states[i])
+            draw_menu_button(self.screen, button["rect"], button["text"], self.hover_states[i])
 
     def draw_close_button(self):
         draw_close_button(self.screen, self.close_rect, self.close_hover)

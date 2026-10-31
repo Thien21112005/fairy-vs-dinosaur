@@ -137,7 +137,7 @@ class AboutMenu:
         self.screen.blit(surface, self.view_rect.topleft, area=blit_area)
 
     def draw_back_button(self):
-        draw_menu_button(self.screen, self.back_rect, get_translation("back"), self.button_font, self.back_hover)
+        draw_menu_button(self.screen, self.back_rect, get_translation("back"), self.back_hover)
 
     def draw_close_button(self):
         draw_close_button(self.screen, self.close_rect, self.close_hover)
