@@ -47,9 +47,10 @@ python main.py
 |---|---|
 | Move | Arrow keys or WASD, set in Settings |
 | Pause and resume | Esc, or the pause button |
+| Navigate the main menu | Left and Right arrows, then Enter |
 | Let an algorithm play | Click SOLVE and choose an algorithm |
 | Show planned paths | Click HINT |
-| Show or hide a dinosaur | Click B, P, I or C |
+| Show or hide a dinosaur | Click its portrait at the bottom of the screen |
 
 Choosing an algorithm and pressing a movement key are mutually exclusive: the first one you use locks the mode for that game. Only AI games are recorded in History.
 
@@ -137,7 +138,7 @@ The tests run without a window or sound device and take about a minute. They do 
 
 ### License
 
-The source code is released under the [MIT License](LICENSE). Files in `assets/` may be subject to the terms of their original creators and are not covered by this license.
+The source code is released under the [MIT License](LICENSE). Files in `assets/` may be subject to the terms of their original creators and are not covered by this license. The fonts in `assets/fonts/` are under the SIL Open Font License.
 
 ---
 
@@ -180,9 +181,10 @@ python main.py
 |---|---|
 | Di chuyển | Phím mũi tên hoặc WASD, chọn trong Settings |
 | Tạm dừng và tiếp tục | Esc, hoặc nút tạm dừng |
+| Chọn trong menu chính | Mũi tên trái và phải, rồi Enter |
 | Để thuật toán chơi | Bấm SOLVE rồi chọn thuật toán |
 | Hiện đường đi dự kiến | Bấm HINT |
-| Hiện hoặc ẩn một con khủng long | Bấm B, P, I hoặc C |
+| Hiện hoặc ẩn một con khủng long | Bấm vào hình của nó ở cuối màn hình |
 
 Chọn thuật toán và bấm phím di chuyển loại trừ nhau: thao tác nào dùng trước sẽ khóa chế độ của ván đó. Chỉ các ván chơi bằng AI mới được lưu vào History.
 
@@ -270,4 +272,4 @@ Bộ kiểm thử chạy không cần cửa sổ hay thiết bị âm thanh, m�
 
 ### Giấy phép
 
-Mã nguồn được phát hành theo [Giấy phép MIT](LICENSE). Các file trong `assets/` có thể thuộc điều khoản của tác giả gốc và không nằm trong phạm vi giấy phép này.
+Mã nguồn được phát hành theo [Giấy phép MIT](LICENSE). Các file trong `assets/` có thể thuộc điều khoản của tác giả gốc và không nằm trong phạm vi giấy phép này. Các font trong `assets/fonts/` theo giấy phép SIL Open Font License.
